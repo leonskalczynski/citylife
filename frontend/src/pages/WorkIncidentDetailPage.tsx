@@ -12,7 +12,8 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/features/auth/components/AuthProvider";
-import { getWorkIncident, getWorkIncidentHistory, resolveWork, startWork, updateWorkNotes } from "@/features/incidents/api/workApi";
+import { getWorkIncident, getWorkIncidentAttachments, getWorkIncidentHistory, resolveWork, startWork, updateWorkNotes, uploadWorkIncidentAttachment } from "@/features/incidents/api/workApi";
+import { IncidentAttachments } from "@/features/incidents/components/IncidentAttachments";
 import { IncidentStatusBadge } from "@/features/incidents/components/IncidentStatusBadge";
 import { IncidentTimeline } from "@/features/incidents/components/IncidentTimeline";
 import { resolveWorkSchema, workNotesSchema } from "@/features/incidents/lib/workSchemas";
@@ -28,6 +29,7 @@ export function WorkIncidentDetailPage() {
   const queryClient = useQueryClient();
   const incidentQuery = useQuery({ queryKey: ["work-incident", incidentId], queryFn: ({ signal }) => getWorkIncident(token!, incidentId, signal) });
   const historyQuery = useQuery({ queryKey: ["work-incident-history", incidentId], queryFn: ({ signal }) => getWorkIncidentHistory(token!, incidentId, signal) });
+  const attachmentsQuery = useQuery({ queryKey: ["work-incident-attachments", incidentId], queryFn: ({ signal }) => getWorkIncidentAttachments(token!, incidentId, signal) });
   const notesForm = useForm<NotesForm>({ resolver: zodResolver(workNotesSchema), defaultValues: { notes: "" } });
   const resolveForm = useForm<ResolveForm>({ resolver: zodResolver(resolveWorkSchema), defaultValues: { summary: "" } });
 
@@ -43,6 +45,7 @@ export function WorkIncidentDetailPage() {
   const startMutation = useMutation({ mutationFn: () => startWork(token!, incidentId), onSuccess: updateIncident });
   const notesMutation = useMutation({ mutationFn: (data: NotesForm) => updateWorkNotes(token!, incidentId, data.notes), onSuccess: updateIncident });
   const resolveMutation = useMutation({ mutationFn: (data: ResolveForm) => resolveWork(token!, incidentId, data.summary), onSuccess: updateIncident });
+  const attachmentMutation = useMutation({ mutationFn: (file: File) => uploadWorkIncidentAttachment(token!, incidentId, file), onSuccess: () => queryClient.invalidateQueries({ queryKey: ["work-incident-attachments", incidentId] }) });
   const actionError = [startMutation.error, notesMutation.error, resolveMutation.error].find(Boolean);
 
   return (
@@ -64,6 +67,7 @@ export function WorkIncidentDetailPage() {
               <div className="space-y-5">
                 <Card><CardHeader><h2 className="text-lg font-semibold">Descripción</h2></CardHeader><CardContent><p className="whitespace-pre-wrap leading-7 text-slate-700">{incidentQuery.data.description}</p></CardContent></Card>
                 <Card><CardHeader><h2 className="text-lg font-semibold">Datos del trabajo</h2></CardHeader><CardContent className="grid gap-5 sm:grid-cols-2"><Detail icon={<UserRound />} label="Departamento" value={incidentQuery.data.department?.name ?? "Sin departamento"} /><Detail icon={<CalendarDays />} label="Última actualización" value={formatDate(incidentQuery.data.updatedAt)} />{(incidentQuery.data.address || incidentQuery.data.district) && <Detail icon={<MapPin />} label="Ubicación" value={[incidentQuery.data.address, incidentQuery.data.district].filter(Boolean).join(" · ")} />}</CardContent></Card>
+                <IncidentAttachments attachments={attachmentsQuery.data} token={token!} isLoading={attachmentsQuery.isLoading} isError={attachmentsQuery.isError} canUpload isUploading={attachmentMutation.isPending} uploadError={attachmentMutation.error} onUpload={(file) => attachmentMutation.mutate(file)} />
                 {incidentQuery.data.technicianNotes && (incidentQuery.data.status === "RESOLVED" || incidentQuery.data.status === "CLOSED") && <Card><CardHeader><h2 className="text-lg font-semibold">Notas de intervención</h2></CardHeader><CardContent><p className="whitespace-pre-wrap leading-7 text-slate-700">{incidentQuery.data.technicianNotes}</p></CardContent></Card>}
                 {incidentQuery.data.resolutionSummary && <Card className="border-emerald-200"><CardHeader><h2 className="flex items-center gap-2 text-lg font-semibold"><CheckCircle2 className="size-5 text-emerald-700" />Resolución</h2></CardHeader><CardContent><p className="whitespace-pre-wrap leading-7 text-slate-700">{incidentQuery.data.resolutionSummary}</p>{incidentQuery.data.resolvedAt && <p className="mt-3 text-sm text-slate-500">Resuelta el {formatDate(incidentQuery.data.resolvedAt)}</p>}</CardContent></Card>}
                 <IncidentTimeline changes={historyQuery.data} isLoading={historyQuery.isLoading} isError={historyQuery.isError} />

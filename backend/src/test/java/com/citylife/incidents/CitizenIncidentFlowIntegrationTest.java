@@ -3,6 +3,7 @@ package com.citylife.incidents;
 import com.citylife.categories.model.Category;
 import com.citylife.categories.repository.CategoryRepository;
 import com.citylife.incidents.repository.IncidentRepository;
+import com.citylife.incidents.repository.AttachmentRepository;
 import com.citylife.incidents.repository.IncidentStatusChangeRepository;
 import com.citylife.users.model.Role;
 import com.citylife.users.model.User;
@@ -31,6 +32,7 @@ class CitizenIncidentFlowIntegrationTest {
 
     @Autowired MockMvc mockMvc;
     @Autowired IncidentRepository incidentRepository;
+    @Autowired AttachmentRepository attachmentRepository;
     @Autowired IncidentStatusChangeRepository statusChangeRepository;
     @Autowired CategoryRepository categoryRepository;
     @Autowired UserRepository userRepository;
@@ -40,6 +42,7 @@ class CitizenIncidentFlowIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        attachmentRepository.deleteAll();
         statusChangeRepository.deleteAll();
         incidentRepository.deleteAll();
         categoryRepository.deleteAll();

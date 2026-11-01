@@ -29,6 +29,15 @@ export type IncidentStatusChange = {
   changedAt: string;
 };
 
+export type Attachment = {
+  id: string;
+  originalFileName: string;
+  contentType: "image/jpeg" | "image/png" | "image/webp";
+  sizeBytes: number;
+  uploadedBy: Pick<UserSummary, "id" | "displayName" | "role">;
+  createdAt: string;
+};
+
 export type Incident = {
   id: string;
   title: string;

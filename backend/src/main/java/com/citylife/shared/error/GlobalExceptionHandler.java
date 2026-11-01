@@ -10,6 +10,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.time.Instant;
 import java.util.LinkedHashMap;
@@ -64,6 +65,12 @@ public class GlobalExceptionHandler {
     ResponseEntity<ApiError> handleInvalidRequest(InvalidRequestException exception) {
         return ResponseEntity.badRequest()
                 .body(ApiError.of(400, exception.getCode(), exception.getMessage()));
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    ResponseEntity<ApiError> handleMaxUploadSize() {
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                .body(ApiError.of(413, "ATTACHMENT_TOO_LARGE", "La imagen no puede superar 5 MB"));
     }
 
     @ExceptionHandler(InvalidIncidentTransitionException.class)

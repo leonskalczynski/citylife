@@ -15,7 +15,7 @@ public class OpenApiConfiguration {
         return new OpenAPI()
                 .info(new Info()
                         .title("Citylife API")
-                        .version("0.6.0")
+                        .version("0.7.0")
                         .description("API REST para la gestión de incidencias urbanas"))
                 .components(new Components().addSecuritySchemes(
                         "bearerAuth",

@@ -17,7 +17,7 @@ El MVP se desarrollará de forma incremental e incluirá:
 - fotografías y otros archivos asociados;
 - filtros, paginación, mapa y métricas básicas.
 
-Las Fases 1 a 6 están implementadas: infraestructura local, autenticación JWT, flujos de ciudadanía, operación y trabajo técnico, además de un historial auditable. Cada transición guarda estado anterior y nuevo, actor, fecha y motivo cuando corresponde; los tres perfiles pueden consultar una timeline adaptada a sus permisos.
+Las Fases 1 a 7 están implementadas: infraestructura local, autenticación JWT, flujos de ciudadanía, operación y trabajo técnico, historial auditable y adjuntos seguros. Ciudadanía y técnicos pueden añadir evidencias visuales; operación puede revisarlas. El backend comprueba propiedad o asignación, firma real del archivo, tamaño y límite por incidencia.
 
 ## Tecnologías y propósito
 
@@ -115,6 +115,10 @@ El perfil `local` también crea categorías urbanas, tres incidencias reportadas
 | `GET /api/incidents/{id}/history` | Consultar el historial de una incidencia propia |
 | `GET /api/operations/incidents/{id}/history` | Consultar el historial como operador |
 | `GET /api/work/incidents/{id}/history` | Consultar el historial de un trabajo asignado |
+| `GET/POST /api/incidents/{id}/attachments` | Consultar o añadir imágenes a una incidencia propia |
+| `GET /api/operations/incidents/{id}/attachments` | Revisar imágenes como operador |
+| `GET/POST /api/work/incidents/{id}/attachments` | Consultar o añadir evidencias del trabajo asignado |
+| `GET /api/attachments/{id}/content` | Obtener una imagen con autorización por recurso |
 
 ## Documentación
 

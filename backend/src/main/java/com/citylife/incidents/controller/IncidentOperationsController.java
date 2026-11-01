@@ -1,6 +1,7 @@
 package com.citylife.incidents.controller;
 
 import com.citylife.incidents.dto.AssignIncidentRequest;
+import com.citylife.incidents.dto.AttachmentResponse;
 import com.citylife.incidents.dto.ChangePriorityRequest;
 import com.citylife.incidents.dto.IncidentResponse;
 import com.citylife.incidents.dto.IncidentStatusChangeResponse;
@@ -10,6 +11,7 @@ import com.citylife.incidents.model.IncidentStatus;
 import com.citylife.incidents.model.Priority;
 import com.citylife.incidents.service.IncidentOperationsService;
 import com.citylife.incidents.service.IncidentAuditService;
+import com.citylife.incidents.service.IncidentAttachmentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -36,10 +38,12 @@ public class IncidentOperationsController {
 
     private final IncidentOperationsService operationsService;
     private final IncidentAuditService auditService;
+    private final IncidentAttachmentService attachmentService;
 
-    public IncidentOperationsController(IncidentOperationsService operationsService, IncidentAuditService auditService) {
+    public IncidentOperationsController(IncidentOperationsService operationsService, IncidentAuditService auditService, IncidentAttachmentService attachmentService) {
         this.operationsService = operationsService;
         this.auditService = auditService;
+        this.attachmentService = attachmentService;
     }
 
     @GetMapping
@@ -91,5 +95,11 @@ public class IncidentOperationsController {
     @Operation(summary = "Returns the complete status history of an incident")
     public List<IncidentStatusChangeResponse> getHistory(@PathVariable UUID incidentId) {
         return auditService.listForOperator(incidentId);
+    }
+
+    @GetMapping("/{incidentId}/attachments")
+    @Operation(summary = "Lists image attachments for an incident")
+    public List<AttachmentResponse> getAttachments(@PathVariable UUID incidentId) {
+        return attachmentService.listForOperator(incidentId);
     }
 }

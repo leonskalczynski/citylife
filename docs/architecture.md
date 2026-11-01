@@ -25,11 +25,13 @@ Los requisitos arquitectónicos principales son:
 │ API Spring Boot               │
 │ Autorización y negocio        │
 └───────────────┬───────────────┘
-                │ JPA/JDBC + Flyway
-┌───────────────▼───────────────┐
-│ PostgreSQL                    │
-│ Datos y auditoría             │
-└───────────────────────────────┘
+        ┌───────┴────────┐
+        │                │
+        │ JPA + Flyway   │ archivos
+┌───────▼────────┐  ┌────▼──────────────┐
+│ PostgreSQL     │  │ Almacenamiento    │
+│ Metadatos      │  │ binario local     │
+└────────────────┘  └───────────────────┘
 ```
 
 Los diagramas C4 detallados están en [contexto](architecture/c4-context.md) y [contenedores](architecture/c4-containers.md).
@@ -85,7 +87,7 @@ Los componentes de presentación no conocen PostgreSQL ni contienen reglas sensi
 | `StatusChange` | Transición auditable con actor, fecha y motivo |
 | `Attachment` | Metadatos de fotografías y archivos |
 
-En la Fase 6 están materializados `User`, `Category`, `Department`, `Incident` e `IncidentStatusChange`. Una incidencia ciudadana siempre se crea en estado `REPORTED` y prioridad `NORMAL`; esos valores no forman parte del DTO de creación. Operación y trabajo técnico usan comandos explícitos para validar, rechazar, priorizar, asignar, iniciar y resolver, sin exponer una actualización general del estado.
+En la Fase 7 están materializados `User`, `Category`, `Department`, `Incident`, `IncidentStatusChange` y `Attachment`. PostgreSQL conserva metadatos e integridad referencial de los adjuntos; el contenido binario reside fuera de la base de datos. Una incidencia ciudadana siempre se crea en estado `REPORTED` y prioridad `NORMAL`; esos valores no forman parte del DTO de creación.
 
 La asignación actual puede mantenerse en `Incident.assignedTo` durante el MVP. Una entidad `Assignment` separada se añadirá solo si aparece información o comportamiento propio que no pueda representarse mediante la incidencia y su historial.
 
@@ -109,6 +111,7 @@ El frontend solicita acciones concretas como validar, rechazar, asignar o resolv
 - CORS limitado al origen configurado.
 - secretos y credenciales mediante variables de entorno.
 - Flyway es la única fuente de cambios de esquema; Hibernate usa `ddl-auto: validate`.
+- Los adjuntos se sirven solo tras autorizar el recurso; se aceptan firmas reales JPEG, PNG y WebP, con 5 MB por archivo y 10 archivos por incidencia.
 
 ## Calidad y pruebas
 

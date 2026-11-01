@@ -8,4 +8,5 @@ frontend/dist/
 frontend/coverage/
 
 backend/target/
+backend/data/
 

@@ -13,7 +13,8 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/features/auth/components/AuthProvider";
-import { assignIncident, changeIncidentPriority, getDepartments, getOperationIncident, getOperationIncidentHistory, getTechnicians, rejectIncident, validateIncident } from "@/features/incidents/api/operationsApi";
+import { assignIncident, changeIncidentPriority, getDepartments, getOperationIncident, getOperationIncidentAttachments, getOperationIncidentHistory, getTechnicians, rejectIncident, validateIncident } from "@/features/incidents/api/operationsApi";
+import { IncidentAttachments } from "@/features/incidents/components/IncidentAttachments";
 import { IncidentStatusBadge } from "@/features/incidents/components/IncidentStatusBadge";
 import { IncidentTimeline } from "@/features/incidents/components/IncidentTimeline";
 import { assignmentSchema, prioritySchema, rejectIncidentSchema } from "@/features/incidents/lib/operationSchemas";
@@ -30,6 +31,7 @@ export function OperationIncidentDetailPage() {
   const queryClient = useQueryClient();
   const incidentQuery = useQuery({ queryKey: ["operation-incident", incidentId], queryFn: ({ signal }) => getOperationIncident(token!, incidentId, signal) });
   const historyQuery = useQuery({ queryKey: ["operation-incident-history", incidentId], queryFn: ({ signal }) => getOperationIncidentHistory(token!, incidentId, signal) });
+  const attachmentsQuery = useQuery({ queryKey: ["operation-incident-attachments", incidentId], queryFn: ({ signal }) => getOperationIncidentAttachments(token!, incidentId, signal) });
   const departments = useQuery({ queryKey: ["departments"], queryFn: ({ signal }) => getDepartments(token!, signal) });
   const technicians = useQuery({ queryKey: ["technicians"], queryFn: ({ signal }) => getTechnicians(token!, signal) });
   const rejectForm = useForm<RejectForm>({ resolver: zodResolver(rejectIncidentSchema), defaultValues: { reason: "" } });
@@ -72,6 +74,7 @@ export function OperationIncidentDetailPage() {
               <div className="space-y-5">
                 <Card><CardHeader><h2 className="text-lg font-semibold">Descripción</h2></CardHeader><CardContent><p className="whitespace-pre-wrap leading-7 text-slate-700">{incidentQuery.data.description}</p></CardContent></Card>
                 <Card><CardHeader><h2 className="text-lg font-semibold">Contexto</h2></CardHeader><CardContent className="grid gap-5 sm:grid-cols-2"><Detail icon={<UserRound />} label="Ciudadano" value={`${incidentQuery.data.createdBy.displayName} · ${incidentQuery.data.createdBy.email}`} /><Detail icon={<CalendarDays />} label="Reportada" value={formatDate(incidentQuery.data.createdAt)} />{(incidentQuery.data.address || incidentQuery.data.district) && <Detail icon={<MapPin />} label="Ubicación" value={[incidentQuery.data.address, incidentQuery.data.district].filter(Boolean).join(" · ")} />}</CardContent></Card>
+                <IncidentAttachments attachments={attachmentsQuery.data} token={token!} isLoading={attachmentsQuery.isLoading} isError={attachmentsQuery.isError} />
                 {incidentQuery.data.rejectionReason && <Card className="border-red-200"><CardHeader><h2 className="text-lg font-semibold text-red-900">Motivo del rechazo</h2></CardHeader><CardContent className="text-sm text-red-800">{incidentQuery.data.rejectionReason}</CardContent></Card>}
                 <IncidentTimeline changes={historyQuery.data} isLoading={historyQuery.isLoading} isError={historyQuery.isError} />
               </div>

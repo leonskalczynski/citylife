@@ -17,4 +17,6 @@ app:
   jwt:
     secret-base64: dGVzdC1zZWNyZXQtZm9yLWNpdHlsaWZlLW11c3QtYmUtMzItYnl0ZXMtbG9uZw==
     ttl: 15m
+  attachments:
+    storage-path: ./target/test-attachments
 

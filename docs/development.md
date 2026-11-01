@@ -95,6 +95,7 @@ Abre `http://localhost:5173`. Vite redirige las peticiones `/api` a `http://loca
 | `JWT_SECRET_BASE64` | Obligatoria; secreto HMAC codificado en Base64 |
 | `JWT_TTL` | `15m` en `.env.example` |
 | `DEMO_USER_PASSWORD` | Contraseña común para usuarios demo del perfil `local` |
+| `ATTACHMENT_STORAGE_PATH` | Directorio de binarios; `./data/attachments` respecto al backend por defecto |
 
 ### Frontend
 
@@ -194,6 +195,15 @@ Flyway crea cuatro departamentos de desarrollo. El usuario `operator@example.com
 - Ciudadanía consulta solo el historial de sus incidencias; técnicos, solo el de sus trabajos asignados; operación puede consultar cualquier incidencia.
 - Los endpoints de historial nunca exponen el email del actor, únicamente su nombre visible y rol.
 - Las timelines se actualizan después de cada comando de estado mediante invalidación de TanStack Query.
+
+## Adjuntos y evidencias
+
+- Ciudadanía puede listar y subir imágenes únicamente en incidencias propias.
+- Técnicos pueden listar y subir evidencias únicamente en trabajos asignados; operación puede consultar cualquier incidencia.
+- El endpoint de contenido vuelve a comprobar permisos y nunca expone una ruta del sistema de archivos.
+- Se aceptan JPEG, PNG y WebP mediante su firma binaria, no por la extensión o el `Content-Type` enviado.
+- Cada archivo admite hasta 5 MB y cada incidencia hasta 10 adjuntos.
+- El almacenamiento local predeterminado es `backend/data/attachments`, ignorado por Git. Para pruebas se usa `backend/target/test-attachments`.
 
 ## Problemas habituales
 

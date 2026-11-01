@@ -2,7 +2,7 @@
 
 ## Estado actual
 
-Citylife está en la Fase 1 y está preparado para ejecutarse en desarrollo local. Todavía no existe una configuración de producción, una imagen del backend ni un pipeline de entrega continua. Este documento separa el procedimiento disponible hoy de la estrategia prevista para evitar presentar como operativo algo que aún no lo es.
+Citylife ha completado la Fase 7 y está preparado para ejecutarse en desarrollo local. Todavía no existe una configuración de producción, una imagen del backend ni un pipeline de entrega continua. Este documento separa el procedimiento disponible hoy de la estrategia prevista para evitar presentar como operativo algo que aún no lo es.
 
 ## Despliegue local actual
 
@@ -46,6 +46,7 @@ En un entorno no local no deben usarse los valores predeterminados de desarrollo
 | `VITE_API_URL` | URL pública de la API usada durante la build |
 | `JWT_SECRET_BASE64` | Secreto Base64 de al menos 32 bytes, único por entorno |
 | `JWT_TTL` | Duración del access token, por ejemplo `15m` |
+| `ATTACHMENT_STORAGE_PATH` | Ruta absoluta a un volumen persistente y con copia de seguridad |
 
 Las futuras claves JWT u otros secretos deberán suministrarse mediante el gestor de secretos de la plataforma, nunca mediante archivos versionados.
 
@@ -56,6 +57,7 @@ La opción inicial más sencilla será:
 - frontend estático servido por un hosting o servidor web con HTTPS;
 - una instancia de la aplicación Spring Boot;
 - PostgreSQL administrado o con copias de seguridad externas;
+- almacenamiento persistente para adjuntos, montado fuera de la imagen de aplicación;
 - migraciones Flyway ejecutadas por la aplicación durante un despliegue controlado;
 - logs de aplicación enviados a la salida estándar;
 - health check contra `/actuator/health`.
@@ -79,6 +81,7 @@ No se requieren microservicios, Kubernetes ni mensajería distribuida para el MV
 - secretos de desarrollo eliminados del entorno productivo;
 - HTTPS habilitado;
 - política de copias de seguridad y restauración verificada;
+- copia coordinada de PostgreSQL y del volumen de adjuntos;
 - límites de tamaño y tipo de archivos configurados;
 - logs sin credenciales, JWT ni información sensible innecesaria;
 - CORS restringido al frontend real;

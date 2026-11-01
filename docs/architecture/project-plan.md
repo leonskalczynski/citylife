@@ -64,8 +64,8 @@ Los cambios de estado serán comandos explícitos, validados en servicios del ba
 4. Operación: listado, filtros, validación, rechazo y asignación (completada).
 5. Trabajo técnico y resolución (completada).
 6. Historial auditable y timeline (completada).
-7. Adjuntos con límites de tipo y tamaño (siguiente).
-8. Mapa y geolocalización.
+7. Adjuntos con límites de tipo y tamaño (completada).
+8. Mapa y geolocalización (siguiente).
 9. Dashboard básico.
 
 ## Fuera del MVP

@@ -6,6 +6,7 @@ import com.citylife.departments.model.Department;
 import com.citylife.departments.repository.DepartmentRepository;
 import com.citylife.incidents.model.Incident;
 import com.citylife.incidents.repository.IncidentRepository;
+import com.citylife.incidents.repository.AttachmentRepository;
 import com.citylife.incidents.repository.IncidentStatusChangeRepository;
 import com.citylife.users.model.Role;
 import com.citylife.users.model.User;
@@ -32,6 +33,7 @@ class TechnicianWorkIntegrationTest {
 
     @Autowired MockMvc mockMvc;
     @Autowired IncidentRepository incidentRepository;
+    @Autowired AttachmentRepository attachmentRepository;
     @Autowired IncidentStatusChangeRepository statusChangeRepository;
     @Autowired CategoryRepository categoryRepository;
     @Autowired DepartmentRepository departmentRepository;
@@ -46,6 +48,7 @@ class TechnicianWorkIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        attachmentRepository.deleteAll();
         statusChangeRepository.deleteAll();
         incidentRepository.deleteAll();
         departmentRepository.deleteAll();

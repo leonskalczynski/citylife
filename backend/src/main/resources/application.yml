@@ -11,6 +11,10 @@ spring:
       ddl-auto: validate
   flyway:
     enabled: true
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
 
 app:
   cors:
@@ -18,6 +22,8 @@ app:
   jwt:
     secret-base64: ${JWT_SECRET_BASE64}
     ttl: ${JWT_TTL:15m}
+  attachments:
+    storage-path: ${ATTACHMENT_STORAGE_PATH:./data/attachments}
 
 management:
   endpoints:
