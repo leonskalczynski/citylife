@@ -45,27 +45,25 @@ export function IncidentDetailPage() {
         </Link>
 
         {(location.state as { created?: boolean } | null)?.created && (
-          <div className="mt-6 flex items-start gap-3 rounded-md border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
-            <CheckCircle2 className="mt-0.5 size-5 shrink-0" />
-            <div><p className="font-semibold">Incidencia reportada correctamente</p><p className="mt-1">Ya puedes consultar aquí cualquier cambio de estado.</p></div>
+          <div className="mt-6 flex items-center gap-3 rounded-xl bg-[var(--accent-soft)] px-4 py-3 text-sm font-medium text-[var(--accent-ink)]">
+            <CheckCircle2 className="size-5 shrink-0" />
+            Incidencia reportada
           </div>
         )}
 
-        {query.isLoading && <div className="mt-8 h-96 animate-pulse rounded-lg border border-slate-200 bg-white" />}
-        {query.isError && <Card className="mt-8"><CardContent className="py-12 text-center"><h1 className="text-xl font-semibold">No se ha encontrado la incidencia</h1><p className="mt-2 text-sm text-slate-600">Puede que no exista o que no tengas acceso.</p></CardContent></Card>}
+        {query.isLoading && <div className="mt-8 h-96 animate-pulse rounded-2xl bg-[var(--surface)]" />}
+        {query.isError && <Card className="mt-8"><CardContent className="py-12 text-center"><h1 className="text-xl font-semibold">No se ha encontrado la incidencia</h1><p className="mt-2 text-sm text-[var(--muted)]">Puede que no exista o que no tengas acceso.</p></CardContent></Card>}
         {query.data && (
           <>
-            <div className="mt-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
-              <div>
-                <div className="flex flex-wrap items-center gap-2"><IncidentStatusBadge status={query.data.status} /><span className="text-sm text-slate-500">#{query.data.id.slice(0, 8)}</span></div>
-                <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">{query.data.title}</h1>
-              </div>
+            <div className="mt-8">
+              <div className="flex flex-wrap items-center gap-2"><IncidentStatusBadge status={query.data.status} /><span className="text-sm text-[var(--muted)]">#{query.data.id.slice(0, 8)}</span></div>
+              <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">{query.data.title}</h1>
             </div>
 
             <div className="mt-8 grid gap-5 md:grid-cols-[1.6fr_1fr]">
               <Card>
                 <CardHeader><h2 className="text-lg font-semibold">Descripción</h2></CardHeader>
-                <CardContent><p className="whitespace-pre-wrap leading-7 text-slate-700">{query.data.description}</p></CardContent>
+                <CardContent><p className="whitespace-pre-wrap leading-7 text-[var(--ink)]">{query.data.description}</p></CardContent>
               </Card>
               <Card>
                 <CardHeader><h2 className="text-lg font-semibold">Información</h2></CardHeader>
@@ -77,13 +75,10 @@ export function IncidentDetailPage() {
               </Card>
             </div>
 
-            <Card className="mt-5 border-l-4 border-l-[var(--accent)] shadow-none">
-              <CardContent className="py-6">
-                <p className="text-sm font-semibold text-[var(--accent-ink)]">Estado actual</p>
-                <h2 className="mt-1 text-xl font-semibold text-slate-950">{stateCopy[query.data.status].title}</h2>
-                <p className="mt-2 text-sm leading-6 text-slate-600">{stateCopy[query.data.status].description}</p>
-              </CardContent>
-            </Card>
+            <div className="mt-5 rounded-2xl bg-[var(--accent-soft)] px-6 py-5">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--accent-ink)]">Estado actual</p>
+              <p className="mt-1 text-xl font-semibold text-[var(--ink)]">{stateCopy[query.data.status]}</p>
+            </div>
             <div className="mt-5"><IncidentAttachments attachments={attachmentsQuery.data} token={token!} isLoading={attachmentsQuery.isLoading} isError={attachmentsQuery.isError} canUpload isUploading={uploadMutation.isPending} uploadError={uploadMutation.error} onUpload={(file) => uploadMutation.mutate(file)} /></div>
             <div className="mt-5"><IncidentLocationCard incident={query.data} /></div>
             <div className="mt-5"><IncidentTimeline changes={historyQuery.data} isLoading={historyQuery.isLoading} isError={historyQuery.isError} /></div>
@@ -94,19 +89,19 @@ export function IncidentDetailPage() {
   );
 }
 
-const stateCopy: Record<IncidentStatus, { title: string; description: string }> = {
-  REPORTED: { title: "Tu aviso ha sido recibido", description: "El equipo de operación lo revisará antes de asignarlo al área responsable." },
-  VALIDATED: { title: "La incidencia ha sido validada", description: "Operación está preparando su asignación al equipo responsable." },
-  REJECTED: { title: "La incidencia ha sido rechazada", description: "Consulta el historial y el motivo registrado por operación." },
-  ASSIGNED: { title: "El trabajo está asignado", description: "Un equipo técnico tiene la incidencia en su bandeja de trabajo." },
-  IN_PROGRESS: { title: "La intervención está en curso", description: "El equipo técnico ya está trabajando en la incidencia." },
-  RESOLVED: { title: "La incidencia está resuelta", description: "La intervención técnica ha finalizado y su resolución ha quedado documentada." },
-  REOPENED: { title: "La incidencia se ha reabierto", description: "El caso vuelve a estar activo para una nueva revisión." },
-  CLOSED: { title: "La incidencia está cerrada", description: "El proceso ha finalizado." },
+const stateCopy: Record<IncidentStatus, string> = {
+  REPORTED: "Tu aviso ha sido recibido",
+  VALIDATED: "La incidencia ha sido validada",
+  REJECTED: "La incidencia ha sido rechazada",
+  ASSIGNED: "El trabajo está asignado",
+  IN_PROGRESS: "La intervención está en curso",
+  RESOLVED: "La incidencia está resuelta",
+  REOPENED: "La incidencia se ha reabierto",
+  CLOSED: "La incidencia está cerrada",
 };
 
 function Detail({ icon, label, value }: { icon: React.ReactElement; label: string; value: string }) {
-  return <div className="flex gap-3"><span className="mt-0.5 [&>svg]:size-4 [&>svg]:text-slate-500">{icon}</span><div><p className="text-slate-500">{label}</p><p className="mt-0.5 font-medium text-slate-900">{value}</p></div></div>;
+  return <div className="flex gap-3"><span className="mt-0.5 [&>svg]:size-4 [&>svg]:text-[var(--muted)]">{icon}</span><div><p className="text-[var(--muted)]">{label}</p><p className="mt-0.5 font-medium text-[var(--ink)]">{value}</p></div></div>;
 }
 
 function formatDate(value: string) {

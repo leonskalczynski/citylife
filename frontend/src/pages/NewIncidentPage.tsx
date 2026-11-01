@@ -7,7 +7,7 @@ import { z } from "zod";
 
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
@@ -56,17 +56,9 @@ export function NewIncidentPage() {
         <Link className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--accent-ink)] hover:underline" to="/my-incidents">
           <ArrowLeft className="size-4" /> Volver a mis incidencias
         </Link>
-        <div className="mt-6">
-          <p className="text-sm font-bold uppercase tracking-[0.2em] text-slate-500">Nueva incidencia</p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">Cuéntanos qué ocurre</h1>
-          <p className="mt-3 text-slate-600">Describe el problema con claridad. Podrás seguir su estado desde tu área personal.</p>
-        </div>
+        <h1 className="mt-6 text-3xl font-semibold tracking-tight sm:text-4xl">Cuéntanos qué ocurre</h1>
 
         <Card className="mt-8">
-          <CardHeader>
-            <h2 className="text-xl font-semibold">Datos de la incidencia</h2>
-            <p className="text-sm text-slate-600">Los campos marcados con * son obligatorios.</p>
-          </CardHeader>
           <CardContent>
             <form className="space-y-6" onSubmit={form.handleSubmit((data) => mutation.mutate(data))} noValidate>
               <Field label="Título *" error={form.formState.errors.title?.message} htmlFor="title">
@@ -84,9 +76,9 @@ export function NewIncidentPage() {
                 </Select>
               </Field>
 
-              <div className="rounded-md border border-slate-200 bg-slate-50 p-5">
+              <div className="rounded-2xl bg-[var(--surface-soft)] p-5">
                 <div className="mb-4 flex items-center gap-2">
-                  <MapPin className="size-5 text-slate-500" />
+                  <MapPin className="size-5 text-[var(--muted)]" />
                   <h3 className="font-semibold">Ubicación opcional</h3>
                 </div>
                 <div className="grid gap-5 sm:grid-cols-2">
@@ -100,11 +92,11 @@ export function NewIncidentPage() {
                 <input type="hidden" {...form.register("latitude", { setValueAs: optionalNumber })} />
                 <input type="hidden" {...form.register("longitude", { setValueAs: optionalNumber })} />
                 <div className="mt-5"><IncidentLocationPicker value={position} onChange={setPosition} /></div>
-                {form.formState.errors.longitude?.message && <p className="mt-3 text-sm text-red-700">{form.formState.errors.longitude.message}</p>}
+                {form.formState.errors.longitude?.message && <p className="mt-3 text-sm text-[var(--danger)]">{form.formState.errors.longitude.message}</p>}
               </div>
 
-              {categories.isError && <p role="alert" className="rounded-md bg-red-50 p-3 text-sm text-red-800">No se han podido cargar las categorías.</p>}
-              {apiError && <p role="alert" className="rounded-md bg-red-50 p-3 text-sm text-red-800">{apiError}</p>}
+              {categories.isError && <p role="alert" className="rounded-xl bg-[var(--danger-soft)] px-4 py-3 text-sm font-medium text-[var(--danger)]">No se han podido cargar las categorías.</p>}
+              {apiError && <p role="alert" className="rounded-xl bg-[var(--danger-soft)] px-4 py-3 text-sm font-medium text-[var(--danger)]">{apiError}</p>}
 
               <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                 <Button type="button" variant="outline" onClick={() => navigate("/my-incidents")}>Cancelar</Button>
@@ -125,7 +117,7 @@ function Field({ label, htmlFor, error, children }: { label: string; htmlFor: st
     <div className="space-y-2">
       <Label htmlFor={htmlFor}>{label}</Label>
       {children}
-      {error && <p className="text-sm text-red-700">{error}</p>}
+      {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
     </div>
   );
 }

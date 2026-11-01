@@ -38,33 +38,31 @@ export function RegisterPage() {
     <AuthLayout>
       <Card>
         <CardHeader>
-          <p className="text-sm font-semibold text-slate-500">Cuenta ciudadana</p>
           <h1 className="text-3xl font-semibold tracking-tight">Crea tu cuenta</h1>
-          <p className="text-sm leading-6 text-slate-600">Podrás reportar y seguir tus incidencias urbanas.</p>
         </CardHeader>
         <CardContent>
           <form className="space-y-5" onSubmit={form.handleSubmit((data) => mutation.mutate(data))} noValidate>
             <div className="space-y-2">
               <Label htmlFor="displayName">Nombre</Label>
               <Input id="displayName" autoComplete="name" {...form.register("displayName")} />
-              {form.formState.errors.displayName && <p className="text-sm text-red-700">{form.formState.errors.displayName.message}</p>}
+              {form.formState.errors.displayName && <p className="text-sm text-[var(--danger)]">{form.formState.errors.displayName.message}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input id="email" type="email" autoComplete="email" {...form.register("email")} />
-              {form.formState.errors.email && <p className="text-sm text-red-700">{form.formState.errors.email.message}</p>}
+              {form.formState.errors.email && <p className="text-sm text-[var(--danger)]">{form.formState.errors.email.message}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Contraseña</Label>
               <Input id="password" type="password" autoComplete="new-password" {...form.register("password")} />
-              {form.formState.errors.password && <p className="text-sm text-red-700">{form.formState.errors.password.message}</p>}
+              {form.formState.errors.password && <p className="text-sm text-[var(--danger)]">{form.formState.errors.password.message}</p>}
             </div>
-            {errorMessage && <p role="alert" className="rounded-md bg-red-50 p-3 text-sm text-red-800">{errorMessage}</p>}
+            {errorMessage && <p role="alert" className="rounded-xl bg-[var(--danger-soft)] px-4 py-3 text-sm font-medium text-[var(--danger)]">{errorMessage}</p>}
             <Button className="w-full" size="lg" type="submit" disabled={mutation.isPending}>
               {mutation.isPending ? "Creando cuenta…" : "Crear cuenta"}
             </Button>
           </form>
-          <p className="mt-6 text-center text-sm text-slate-600">
+          <p className="mt-6 text-center text-sm text-[var(--muted)]">
             ¿Ya tienes cuenta? <Link className="font-semibold text-[var(--accent-ink)] hover:underline" to="/login">Inicia sesión</Link>
           </p>
         </CardContent>

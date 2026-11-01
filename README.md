@@ -57,6 +57,16 @@ Citylife es un monolito modular: mantiene una única aplicación backend despleg
 
 Requisitos: Node.js 20+, Java 21, Maven 3.8+ y Docker Compose.
 
+La forma más rápida desde la raíz del repositorio:
+
+```bash
+./dev.sh
+```
+
+El lanzador crea `.env` si no existe, levanta PostgreSQL, reinicia un backend anterior si lo detecta, instala las dependencias del frontend cuando faltan, arranca ambos servicios y abre `http://localhost:5173`. `Ctrl+C` detiene backend y frontend; PostgreSQL puede seguir en Docker para el siguiente arranque.
+
+Si prefieres ejecutarlo manualmente:
+
 ```bash
 cp .env.example .env
 set -a
@@ -108,6 +118,7 @@ El perfil `local` también crea categorías urbanas, tres incidencias reportadas
 | `POST /api/operations/incidents/{id}/assign` | Asignar departamento y técnico opcional |
 | `GET /api/departments` | Consultar departamentos activos |
 | `GET /api/technicians` | Consultar técnicos disponibles |
+| `GET /api/dashboard` | Consultar el panel agregado según el rol |
 | `GET /api/work/incidents` | Listar los trabajos del técnico autenticado |
 | `GET /api/work/incidents/{id}` | Consultar un trabajo propio |
 | `POST /api/work/incidents/{id}/start` | Iniciar una intervención asignada |

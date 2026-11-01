@@ -37,7 +37,7 @@ export function IncidentMap({ points = [], selected, onSelect, ariaLabel, classN
       : MADRID;
 
   return (
-    <div className={`overflow-hidden rounded-md border border-slate-200 bg-slate-100 ${className}`} role="region" aria-label={ariaLabel}>
+    <div className={`overflow-hidden rounded-2xl border-2 border-[var(--line)] bg-[var(--surface-soft)] ${className}`} role="region" aria-label={ariaLabel}>
       <MapContainer center={initialCenter} zoom={selected || points.length === 1 ? 16 : 12} scrollWheelZoom className="h-full w-full" attributionControl>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'

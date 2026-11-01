@@ -16,17 +16,17 @@ export function AppShell({ children }: { children: ReactNode }) {
   };
 
   return (
-    <main className="min-h-screen bg-[var(--canvas)] text-slate-950">
-      <header className="border-b border-slate-200 bg-white">
+    <main className="min-h-screen bg-[var(--canvas)] text-[var(--ink)]">
+      <header className="sticky top-0 z-20 bg-[color-mix(in_srgb,var(--canvas)_90%,transparent)] backdrop-blur">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-4 sm:px-6">
           <Brand to="/app" />
-          <div className="flex items-center gap-2">
-            <Button asChild variant="outline" className="hidden sm:inline-flex">
+          <nav className="flex items-center gap-1" aria-label="Navegación principal">
+            <Button asChild variant="ghost" className="hidden sm:inline-flex">
               <Link to="/app"><LayoutDashboard className="mr-2 size-4" />Panel</Link>
             </Button>
             {user?.role === "CITIZEN" && (
               <>
-                <Button asChild variant="outline" className="hidden sm:inline-flex">
+                <Button asChild variant="ghost" className="hidden sm:inline-flex">
                   <Link to="/my-incidents"><ClipboardList className="mr-2 size-4" />Mis incidencias</Link>
                 </Button>
                 <Button asChild>
@@ -35,19 +35,19 @@ export function AppShell({ children }: { children: ReactNode }) {
               </>
             )}
             {user?.role === "OPERATOR" && (
-              <Button asChild variant="outline">
+              <Button asChild variant="ghost">
                 <Link to="/operations/incidents"><BriefcaseBusiness className="mr-2 size-4" />Incidencias</Link>
               </Button>
             )}
             {user?.role === "TECHNICIAN" && (
-              <Button asChild variant="outline">
+              <Button asChild variant="ghost">
                 <Link to="/work"><Wrench className="mr-2 size-4" />Mis trabajos</Link>
               </Button>
             )}
-            <Button variant="outline" onClick={handleLogout} aria-label="Cerrar sesión">
-              <LogOut className="size-4 sm:mr-2" /><span className="hidden sm:inline">Salir</span>
+            <Button variant="ghost" size="icon" onClick={handleLogout} aria-label="Cerrar sesión">
+              <LogOut className="size-4" />
             </Button>
-          </div>
+          </nav>
         </div>
       </header>
       {children}

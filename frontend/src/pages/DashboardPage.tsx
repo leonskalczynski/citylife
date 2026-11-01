@@ -35,17 +35,6 @@ const statusLabels: Record<string, string> = {
   CLOSED: "Cerrada",
 };
 
-const statusColors: Record<string, string> = {
-  REPORTED: "bg-amber-500",
-  VALIDATED: "bg-sky-500",
-  REJECTED: "bg-rose-500",
-  ASSIGNED: "bg-indigo-500",
-  IN_PROGRESS: "bg-blue-500",
-  RESOLVED: "bg-emerald-500",
-  REOPENED: "bg-orange-500",
-  CLOSED: "bg-slate-500",
-};
-
 const priorityLabels: Record<string, string> = {
   LOW: "Baja",
   NORMAL: "Normal",
@@ -54,30 +43,16 @@ const priorityLabels: Record<string, string> = {
 };
 
 const priorityColors: Record<string, string> = {
-  LOW: "bg-slate-400",
-  NORMAL: "bg-sky-500",
-  HIGH: "bg-amber-500",
-  URGENT: "bg-rose-500",
+  LOW: "bg-[var(--line-strong)]",
+  NORMAL: "bg-[color-mix(in_srgb,var(--accent)_55%,var(--surface-soft))]",
+  HIGH: "bg-[color-mix(in_srgb,var(--accent)_80%,var(--surface-soft))]",
+  URGENT: "bg-[var(--accent)]",
 };
 
-const categoryColors = ["bg-emerald-500", "bg-sky-500", "bg-amber-500", "bg-violet-500", "bg-rose-500", "bg-teal-500"];
-
 const roleCopy = {
-  CITIZEN: {
-    eyebrow: "Mi panel",
-    title: "El pulso de tus avisos",
-    subtitle: "Consulta cuántas incidencias has registrado y cómo avanza su resolución.",
-  },
-  OPERATOR: {
-    eyebrow: "Panel de operación",
-    title: "Resumen de la operación",
-    subtitle: "Una lectura rápida del volumen, las colas de trabajo y la evolución de las incidencias.",
-  },
-  TECHNICIAN: {
-    eyebrow: "Panel técnico",
-    title: "Tu carga de trabajo",
-    subtitle: "Revisa tus intervenciones activas, las que están por comenzar y tu histórico resuelto.",
-  },
+  CITIZEN: { title: "Mi panel" },
+  OPERATOR: { title: "Resumen de la operación" },
+  TECHNICIAN: { title: "Tu carga de trabajo" },
 } as const;
 
 export function DashboardPage() {
@@ -94,24 +69,17 @@ export function DashboardPage() {
   return (
     <AppShell>
       <section className="mx-auto max-w-6xl px-5 py-10 sm:px-6 sm:py-14">
-        <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
-          <div>
-            <p className="text-sm font-bold uppercase tracking-[0.2em] text-slate-500">{copy.eyebrow}</p>
-            <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">{copy.title}</h1>
-            <p className="mt-3 max-w-2xl text-slate-600">{copy.subtitle}</p>
-          </div>
+        <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-center">
+          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{copy.title}</h1>
           <RoleActions role={role} />
         </div>
 
         {dashboardQuery.isLoading && <DashboardSkeleton />}
 
         {dashboardQuery.isError && (
-          <Card className="mt-8 border-red-200 shadow-none">
+          <Card className="mt-8">
             <CardContent className="flex flex-col items-start gap-4 py-8 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="font-semibold text-red-900">No se ha podido cargar el panel.</p>
-                <p className="mt-1 text-sm text-red-700">Comprueba la conexión con la API e inténtalo de nuevo.</p>
-              </div>
+              <p className="font-semibold text-[var(--danger)]">No se ha podido cargar el panel.</p>
               <Button type="button" variant="outline" onClick={() => dashboardQuery.refetch()}>
                 <RefreshCw className="mr-2 size-4" />Reintentar
               </Button>
@@ -158,14 +126,12 @@ function DashboardContent({ dashboard }: { dashboard: Dashboard }) {
       <div className="mt-5 grid gap-5 lg:grid-cols-2">
         <DashboardBreakdown
           title="Por estado"
-          description="Distribución actual del ciclo de vida."
           items={toStatusItems(dashboard.byStatus)}
           total={dashboard.totalIncidents}
           emptyMessage="Todavía no hay incidencias registradas."
         />
         <DashboardBreakdown
           title="Por prioridad"
-          description="Nivel de atención de las incidencias registradas."
           items={toPriorityItems(dashboard.byPriority)}
           total={dashboard.totalIncidents}
           emptyMessage="Todavía no hay prioridades que mostrar."
@@ -175,12 +141,11 @@ function DashboardContent({ dashboard }: { dashboard: Dashboard }) {
       <div className="mt-5">
         <DashboardBreakdown
           title="Por categoría"
-          description="Qué tipo de problemas concentra la actividad."
-          items={dashboard.byCategory.map((item, index) => ({
+          items={dashboard.byCategory.map((item) => ({
             key: item.id,
             label: item.name,
             count: item.count,
-            barClassName: categoryColors[index % categoryColors.length],
+            barClassName: "bg-[var(--accent)]",
           }))}
           total={dashboard.totalIncidents}
           emptyMessage="Todavía no hay categorías con incidencias."
@@ -194,25 +159,25 @@ function metricCards(dashboard: Dashboard) {
   const { indicators, totalIncidents } = dashboard;
   if (dashboard.scope === "OPERATOR") {
     return [
-      { label: "Incidencias registradas", value: totalIncidents, hint: "Volumen total del municipio", icon: <ClipboardList className="size-4" /> },
-      { label: "Pendientes de validar", value: indicators.awaitingValidation, hint: "Avisos recibidos sin revisar", icon: <Inbox className="size-4" /> },
-      { label: "Pendientes de asignar", value: indicators.awaitingAssignment, hint: "Validadas sin destino operativo", icon: <UserRound className="size-4" /> },
-      { label: "Urgentes abiertas", value: indicators.urgentOpen, hint: "Prioridad urgente sin cerrar", icon: <Clock3 className="size-4" /> },
+      { label: "Incidencias registradas", value: totalIncidents, icon: <ClipboardList className="size-4" /> },
+      { label: "Pendientes de validar", value: indicators.awaitingValidation, icon: <Inbox className="size-4" /> },
+      { label: "Pendientes de asignar", value: indicators.awaitingAssignment, icon: <UserRound className="size-4" /> },
+      { label: "Urgentes abiertas", value: indicators.urgentOpen, icon: <Clock3 className="size-4" /> },
     ];
   }
   if (dashboard.scope === "TECHNICIAN") {
     return [
-      { label: "Trabajos asignados", value: totalIncidents, hint: "Incidencias bajo tu responsabilidad", icon: <Wrench className="size-4" /> },
-      { label: "Por iniciar", value: indicators.awaitingStart, hint: "Asignadas pendientes de comenzar", icon: <Clock3 className="size-4" /> },
-      { label: "En curso", value: indicators.inProgress, hint: "Intervenciones abiertas ahora", icon: <TrendingUp className="size-4" /> },
-      { label: "Resueltas", value: indicators.resolved, hint: "Trabajos completados", icon: <CheckCircle2 className="size-4" /> },
+      { label: "Trabajos asignados", value: totalIncidents, icon: <Wrench className="size-4" /> },
+      { label: "Por iniciar", value: indicators.awaitingStart, icon: <Clock3 className="size-4" /> },
+      { label: "En curso", value: indicators.inProgress, icon: <TrendingUp className="size-4" /> },
+      { label: "Resueltas", value: indicators.resolved, icon: <CheckCircle2 className="size-4" /> },
     ];
   }
   return [
-    { label: "Tus incidencias", value: totalIncidents, hint: "Avisos que has registrado", icon: <ClipboardList className="size-4" /> },
-    { label: "Pendientes", value: indicators.awaitingValidation, hint: "En espera de revisión municipal", icon: <Inbox className="size-4" /> },
-    { label: "En curso", value: indicators.activeWork, hint: "Validadas o en intervención", icon: <TrendingUp className="size-4" /> },
-    { label: "Resueltas", value: indicators.resolved, hint: "Trabajos completados", icon: <CheckCircle2 className="size-4" /> },
+    { label: "Tus incidencias", value: totalIncidents, icon: <ClipboardList className="size-4" /> },
+    { label: "Pendientes", value: indicators.awaitingValidation, icon: <Inbox className="size-4" /> },
+    { label: "En curso", value: indicators.activeWork, icon: <TrendingUp className="size-4" /> },
+    { label: "Resueltas", value: indicators.resolved, icon: <CheckCircle2 className="size-4" /> },
   ];
 }
 
@@ -224,24 +189,21 @@ function ResolutionCard({ dashboard }: { dashboard: Dashboard }) {
     : 100;
 
   return (
-    <Card className="border-slate-900 bg-slate-950 text-white shadow-none">
+    <Card className="bg-[var(--accent)]">
       <CardHeader>
-        <p className="flex items-center gap-2 text-sm font-semibold text-slate-300"><Timer className="size-4 text-[var(--accent)]" />Tiempo medio de resolución</p>
+        <p className="flex items-center gap-2 text-sm font-semibold text-[var(--ink)]"><Timer className="size-4" />Tiempo medio de resolución</p>
       </CardHeader>
       <CardContent>
         {hasAverage ? (
-          <>
-            <p className="text-4xl font-semibold tracking-tight">{formatDuration(resolution.averageSeconds!)}</p>
-            <p className="mt-3 text-sm leading-6 text-slate-400">Calculado sobre {resolution.sampleSize} incidencias resueltas.</p>
-          </>
+          <p className="text-4xl font-semibold tracking-tight text-[var(--ink)]">{formatDuration(resolution.averageSeconds!)}</p>
         ) : (
           <>
-            <p className="text-2xl font-semibold tracking-tight">Aún no hay datos suficientes</p>
-            <p className="mt-3 text-sm leading-6 text-slate-400">{resolution.sampleSize} de {resolution.minimumSamples} resoluciones necesarias para calcular una media fiable.</p>
+            <p className="text-2xl font-semibold tracking-tight text-[var(--ink)]">Aún no hay datos suficientes</p>
+            <p className="mt-3 text-sm leading-6 text-[var(--accent-ink)]">{resolution.sampleSize} de {resolution.minimumSamples} resoluciones necesarias.</p>
           </>
         )}
-        <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-white/10" aria-hidden="true">
-          <div className="h-full rounded-full bg-[var(--accent)]" style={{ width: `${progress}%` }} />
+        <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--ink)_12%,transparent)]" aria-hidden="true">
+          <div className="h-full rounded-full bg-[var(--ink)]" style={{ width: `${progress}%` }} />
         </div>
       </CardContent>
     </Card>
@@ -251,18 +213,16 @@ function ResolutionCard({ dashboard }: { dashboard: Dashboard }) {
 function OperationalCard({ dashboard, resolutionRate }: { dashboard: Dashboard; resolutionRate: number }) {
   const rows = operationalRows(dashboard.scope, dashboard.indicators, resolutionRate);
   return (
-    <Card className="shadow-none lg:col-span-2">
+    <Card className="lg:col-span-2">
       <CardHeader>
         <h2 className="text-lg font-semibold">Indicadores operativos</h2>
-        <p className="text-sm text-slate-600">{operationalDescription(dashboard.scope)}</p>
       </CardHeader>
       <CardContent>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-2">
           {rows.map((row) => (
-            <div key={row.label} className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{row.label}</p>
-              <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">{row.value}</p>
-              <p className="mt-1 text-xs text-slate-500">{row.hint}</p>
+            <div key={row.label} className="rounded-xl bg-[var(--surface-soft)] px-4 py-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">{row.label}</p>
+              <p className="mt-2 text-2xl font-semibold tracking-tight text-[var(--ink)]">{row.value}</p>
             </div>
           ))}
         </div>
@@ -274,32 +234,26 @@ function OperationalCard({ dashboard, resolutionRate }: { dashboard: Dashboard; 
 function operationalRows(scope: Dashboard["scope"], indicators: DashboardIndicators, resolutionRate: number) {
   if (scope === "OPERATOR") {
     return [
-      { label: "En ejecución", value: indicators.activeWork, hint: "Asignadas o en intervención" },
-      { label: "Sin técnico", value: indicators.assignedWithoutTechnician, hint: "Asignadas a un departamento sin persona" },
-      { label: "Resueltas", value: indicators.resolved, hint: "Incidencias completadas" },
-      { label: "Tasa de resolución", value: `${resolutionRate}%`, hint: "Resueltas sobre el total registrado" },
+      { label: "En ejecución", value: indicators.activeWork },
+      { label: "Sin técnico", value: indicators.assignedWithoutTechnician },
+      { label: "Resueltas", value: indicators.resolved },
+      { label: "Tasa de resolución", value: `${resolutionRate}%` },
     ];
   }
   if (scope === "TECHNICIAN") {
     return [
-      { label: "Carga activa", value: indicators.activeWork, hint: "Trabajos pendientes o en curso" },
-      { label: "Urgentes abiertas", value: indicators.urgentOpen, hint: "Prioridad urgente sin resolver" },
-      { label: "Resueltas", value: indicators.resolved, hint: "Trabajos completados" },
-      { label: "Tasa de resolución", value: `${resolutionRate}%`, hint: "Resueltas sobre tus trabajos" },
+      { label: "Carga activa", value: indicators.activeWork },
+      { label: "Urgentes abiertas", value: indicators.urgentOpen },
+      { label: "Resueltas", value: indicators.resolved },
+      { label: "Tasa de resolución", value: `${resolutionRate}%` },
     ];
   }
   return [
-    { label: "En curso", value: indicators.activeWork, hint: "Avisos en gestión municipal" },
-    { label: "Urgentes abiertas", value: indicators.urgentOpen, hint: "Prioridad urgente sin resolver" },
-    { label: "Rechazadas", value: indicators.rejected, hint: "Avisos descartados con motivo" },
-    { label: "Tasa de resolución", value: `${resolutionRate}%`, hint: "Resueltas sobre tus avisos" },
+    { label: "En curso", value: indicators.activeWork },
+    { label: "Urgentes abiertas", value: indicators.urgentOpen },
+    { label: "Rechazadas", value: indicators.rejected },
+    { label: "Tasa de resolución", value: `${resolutionRate}%` },
   ];
-}
-
-function operationalDescription(scope: Dashboard["scope"]) {
-  if (scope === "OPERATOR") return "Colas y carga actual para priorizar la revisión diaria.";
-  if (scope === "TECHNICIAN") return "Estado de los trabajos que tienes asignados.";
-  return "Cómo avanzan los avisos que has registrado.";
 }
 
 function toStatusItems(values: DashboardBreakdownValue[]) {
@@ -307,7 +261,7 @@ function toStatusItems(values: DashboardBreakdownValue[]) {
     key: item.key,
     label: statusLabels[item.key] ?? item.key,
     count: item.count,
-    barClassName: statusColors[item.key] ?? "bg-slate-400",
+    barClassName: "bg-[var(--accent)]",
   }));
 }
 
@@ -316,7 +270,7 @@ function toPriorityItems(values: DashboardBreakdownValue[]) {
     key: item.key,
     label: priorityLabels[item.key] ?? item.key,
     count: item.count,
-    barClassName: priorityColors[item.key] ?? "bg-slate-400",
+    barClassName: priorityColors[item.key] ?? "bg-[var(--line-strong)]",
   }));
 }
 
@@ -338,11 +292,11 @@ function DashboardSkeleton() {
   return (
     <div className="mt-8 space-y-5" aria-label="Cargando panel">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, index) => <div key={index} className="h-40 animate-pulse rounded-lg border border-slate-200 bg-white" />)}
+        {Array.from({ length: 4 }).map((_, index) => <div key={index} className="h-32 animate-pulse rounded-2xl bg-[var(--surface)]" />)}
       </div>
       <div className="grid gap-5 lg:grid-cols-3">
-        <div className="h-56 animate-pulse rounded-lg border border-slate-200 bg-white" />
-        <div className="h-56 animate-pulse rounded-lg border border-slate-200 bg-white lg:col-span-2" />
+        <div className="h-56 animate-pulse rounded-2xl bg-[var(--surface)]" />
+        <div className="h-56 animate-pulse rounded-2xl bg-[var(--surface)] lg:col-span-2" />
       </div>
     </div>
   );

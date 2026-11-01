@@ -36,15 +36,12 @@ export function IncidentLocationPicker({ value, onChange }: IncidentLocationPick
   return (
     <div className="space-y-3">
       <IncidentMap ariaLabel="Selector de ubicación de la incidencia" selected={value} onSelect={(position) => { setError(undefined); onChange(roundPosition(position)); }} />
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-xs leading-5 text-slate-500">Haz clic en el mapa o arrastra el marcador para ajustar la posición.</p>
-        <div className="flex flex-wrap gap-2">
-          {value && <Button type="button" variant="outline" className="h-9 px-3" onClick={() => onChange(undefined)}><MapPinOff className="mr-2 size-4" />Quitar ubicación</Button>}
-          <Button type="button" variant="outline" className="h-9 px-3" onClick={locate} disabled={isLocating}><Crosshair className="mr-2 size-4" />{isLocating ? "Localizando…" : "Usar mi ubicación"}</Button>
-        </div>
+      <div className="flex flex-wrap items-center justify-end gap-2">
+        {value && <Button type="button" variant="outline" className="h-9 px-3" onClick={() => onChange(undefined)}><MapPinOff className="mr-2 size-4" />Quitar ubicación</Button>}
+        <Button type="button" variant="outline" className="h-9 px-3" onClick={locate} disabled={isLocating}><Crosshair className="mr-2 size-4" />{isLocating ? "Localizando…" : "Usar mi ubicación"}</Button>
       </div>
-      {value && <p className="text-xs font-medium text-slate-700">Coordenadas: {value.latitude.toFixed(5)}, {value.longitude.toFixed(5)}</p>}
-      {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
+      {value && <p className="text-xs font-medium text-[var(--ink)]">Coordenadas: {value.latitude.toFixed(5)}, {value.longitude.toFixed(5)}</p>}
+      {error && <p role="alert" className="text-sm text-[var(--danger)]">{error}</p>}
     </div>
   );
 }

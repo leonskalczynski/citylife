@@ -40,28 +40,26 @@ export function LoginPage() {
     <AuthLayout>
       <Card>
         <CardHeader>
-          <p className="text-sm font-semibold text-slate-500">Bienvenido de nuevo</p>
           <h1 className="text-3xl font-semibold tracking-tight">Inicia sesión</h1>
-          <p className="text-sm leading-6 text-slate-600">Usa tu cuenta de Citylife para continuar.</p>
         </CardHeader>
         <CardContent>
           <form className="space-y-5" onSubmit={form.handleSubmit((data) => mutation.mutate(data))} noValidate>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input id="email" type="email" autoComplete="email" {...form.register("email")} />
-              {form.formState.errors.email && <p className="text-sm text-red-700">{form.formState.errors.email.message}</p>}
+              {form.formState.errors.email && <p className="text-sm text-[var(--danger)]">{form.formState.errors.email.message}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Contraseña</Label>
               <Input id="password" type="password" autoComplete="current-password" {...form.register("password")} />
-              {form.formState.errors.password && <p className="text-sm text-red-700">{form.formState.errors.password.message}</p>}
+              {form.formState.errors.password && <p className="text-sm text-[var(--danger)]">{form.formState.errors.password.message}</p>}
             </div>
-            {errorMessage && <p role="alert" className="rounded-md bg-red-50 p-3 text-sm text-red-800">{errorMessage}</p>}
+            {errorMessage && <p role="alert" className="rounded-xl bg-[var(--danger-soft)] px-4 py-3 text-sm font-medium text-[var(--danger)]">{errorMessage}</p>}
             <Button className="w-full" size="lg" type="submit" disabled={mutation.isPending}>
               {mutation.isPending ? "Accediendo…" : "Acceder"}
             </Button>
           </form>
-          <p className="mt-6 text-center text-sm text-slate-600">
+          <p className="mt-6 text-center text-sm text-[var(--muted)]">
             ¿Aún no tienes cuenta? <Link className="font-semibold text-[var(--accent-ink)] hover:underline" to="/register">Regístrate</Link>
           </p>
         </CardContent>

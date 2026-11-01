@@ -34,14 +34,31 @@ El archivo `.env` raíz configura PostgreSQL y las variables del backend; no deb
 
 ## Ejecutar Citylife
 
-### 1. PostgreSQL
+### Lanzador automático
+
+Desde la raíz del repositorio:
+
+```bash
+./dev.sh
+```
+
+Hace todo el arranque: crea `.env` si falta, levanta PostgreSQL, espera a que esté sano, reinicia un backend anterior de Citylife si ocupa el puerto, instala dependencias del frontend si faltan, arranca backend y frontend, comprueba que ambos responden y abre el navegador.
+
+- `./dev.sh --no-open` evita abrir el navegador.
+- `Ctrl+C` detiene backend y frontend; PostgreSQL sigue en Docker.
+- Los logs quedan en `.local/backend.log` y `.local/frontend.log`.
+- Los puertos se pueden cambiar con `CITYLIFE_BACKEND_PORT` y `CITYLIFE_FRONTEND_PORT`.
+
+### Ejecución manual
+
+#### 1. PostgreSQL
 
 ```bash
 docker compose up -d postgres
 docker compose ps
 ```
 
-### 2. Backend
+#### 2. Backend
 
 En otra terminal:
 
@@ -52,7 +69,7 @@ mvn spring-boot:run -Dspring-boot.run.profiles=local
 
 El backend escucha en `http://localhost:8080`. Al arrancar, Flyway valida y aplica las migraciones pendientes.
 
-### 3. Frontend
+#### 3. Frontend
 
 En otra terminal:
 

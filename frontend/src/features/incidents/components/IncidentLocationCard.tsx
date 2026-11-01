@@ -9,8 +9,8 @@ export function IncidentLocationCard({ incident }: { incident: Incident }) {
   const longitude = incident.longitude;
   if (latitude == null || longitude == null) {
     return (
-      <Card className="shadow-none">
-        <CardContent className="flex items-start gap-3 py-5 text-sm text-slate-600">
+      <Card>
+        <CardContent className="flex items-start gap-3 py-5 text-sm text-[var(--muted)]">
           <MapPin className="mt-0.5 size-4 shrink-0" />
           <p>Esta incidencia no tiene una posición marcada en el mapa.</p>
         </CardContent>
@@ -22,8 +22,8 @@ export function IncidentLocationCard({ incident }: { incident: Incident }) {
   return (
     <Card>
       <CardHeader>
-        <h2 className="flex items-center gap-2 text-lg font-semibold"><MapPin className="size-5 text-slate-600" />Ubicación</h2>
-        <p className="text-sm text-slate-600">{locationLabel}</p>
+        <h2 className="flex items-center gap-2 text-lg font-semibold"><MapPin className="size-5 text-[var(--muted)]" />Ubicación</h2>
+        <p className="text-sm text-[var(--muted)]">{locationLabel}</p>
       </CardHeader>
       <CardContent className="space-y-3">
         <IncidentMap
@@ -31,7 +31,7 @@ export function IncidentLocationCard({ incident }: { incident: Incident }) {
           points={[{ id: incident.id, label: incident.title, latitude, longitude }]}
           className="h-72"
         />
-        <p className="text-xs text-slate-500">{formatCoordinate(latitude)}, {formatCoordinate(longitude)}</p>
+        <p className="text-xs text-[var(--muted)]">{formatCoordinate(latitude)}, {formatCoordinate(longitude)}</p>
       </CardContent>
     </Card>
   );

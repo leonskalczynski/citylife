@@ -24,19 +24,15 @@ export function ApiStatus() {
   }, []);
 
   if (state.kind === "loading") {
-    return <span className="text-slate-500">Comprobando la API…</span>;
+    return <span className="text-[var(--muted)]">Comprobando la API…</span>;
   }
 
   if (state.kind === "error") {
-    return (
-      <span className="text-amber-700">
-        API no disponible. Arranca el backend para completar la conexión.
-      </span>
-    );
+    return <span className="text-[var(--danger)]">API no disponible</span>;
   }
 
   return (
-    <span className="inline-flex items-center gap-2 text-[var(--accent-ink)]">
+    <span className="inline-flex items-center gap-2 font-medium text-[var(--accent-ink)]">
       <span className="size-2 rounded-full bg-[var(--accent)]" aria-hidden="true" />
       {state.data.application} API conectada
     </span>
