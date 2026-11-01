@@ -58,6 +58,7 @@ public class IncidentOperationsService {
             UUID departmentId,
             String district,
             String search,
+            Boolean withoutTechnician,
             int page,
             int size
     ) {
@@ -67,7 +68,7 @@ public class IncidentOperationsService {
                 Sort.by(Sort.Direction.DESC, "createdAt")
         );
         Page<IncidentResponse> result = incidentRepository.findAll(
-                        operationFilters(status, priority, categoryId, departmentId, district, search),
+                        operationFilters(status, priority, categoryId, departmentId, district, search, withoutTechnician),
                         pageable
                 )
                 .map(IncidentResponse::from);
@@ -150,7 +151,8 @@ public class IncidentOperationsService {
             UUID categoryId,
             UUID departmentId,
             String district,
-            String search
+            String search,
+            Boolean withoutTechnician
     ) {
         String normalizedDistrict = normalize(district);
         String normalizedSearch = normalize(search);
@@ -171,6 +173,9 @@ public class IncidentOperationsService {
             }
             if (normalizedDistrict != null) {
                 predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("district")), "%" + normalizedDistrict + "%"));
+            }
+            if (Boolean.TRUE.equals(withoutTechnician)) {
+                predicates.add(criteriaBuilder.isNull(root.get("assignedTo")));
             }
             if (normalizedSearch != null) {
                 String pattern = "%" + normalizedSearch + "%";

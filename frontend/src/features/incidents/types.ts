@@ -75,6 +75,7 @@ export type OperationFilters = {
   categoryId?: string;
   departmentId?: string;
   district?: string;
+  withoutTechnician?: boolean;
   page: number;
   size: number;
 };

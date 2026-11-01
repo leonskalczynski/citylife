@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, Filter, List, Map as MapIcon, Search } from "lucide-react";
 import { useState, type FormEvent } from "react";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
@@ -16,12 +16,11 @@ import { IncidentStatusBadge } from "@/features/incidents/components/IncidentSta
 import { IncidentMap, type MapPoint } from "@/features/incidents/components/IncidentMap";
 import type { Incident, OperationFilters, Priority } from "@/features/incidents/types";
 
-const initialFilters: OperationFilters = { page: 0, size: 10 };
-
 export function OperationsIncidentsPage() {
   const { token } = useAuth();
-  const [draft, setDraft] = useState<Record<string, string>>({});
-  const [filters, setFilters] = useState<OperationFilters>(initialFilters);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [draft, setDraft] = useState<Record<string, string>>(() => draftFromFilters(filtersFromSearch(searchParams)));
+  const [filters, setFilters] = useState<OperationFilters>(() => filtersFromSearch(searchParams));
   const [view, setView] = useState<"list" | "map">("list");
   const incidents = useQuery({
     queryKey: ["operation-incidents", filters],
@@ -30,9 +29,22 @@ export function OperationsIncidentsPage() {
   const categories = useQuery({ queryKey: ["categories"], queryFn: ({ signal }) => getCategories(token!, signal) });
   const departments = useQuery({ queryKey: ["departments"], queryFn: ({ signal }) => getDepartments(token!, signal) });
 
+  const commitFilters = (next: OperationFilters) => {
+    setFilters(next);
+    const params = new URLSearchParams();
+    if (next.search) params.set("search", next.search);
+    if (next.status) params.set("status", next.status);
+    if (next.priority) params.set("priority", next.priority);
+    if (next.categoryId) params.set("categoryId", next.categoryId);
+    if (next.departmentId) params.set("departmentId", next.departmentId);
+    if (next.district) params.set("district", next.district);
+    if (next.withoutTechnician) params.set("withoutTechnician", "true");
+    if (next.page > 0) params.set("page", String(next.page));
+    setSearchParams(params, { replace: true });
+  };
   const applyFilters = (event: FormEvent) => {
     event.preventDefault();
-    setFilters({
+    commitFilters({
       page: 0,
       size: 10,
       search: draft.search || undefined,
@@ -41,6 +53,7 @@ export function OperationsIncidentsPage() {
       categoryId: draft.categoryId || undefined,
       departmentId: draft.departmentId || undefined,
       district: draft.district || undefined,
+      withoutTechnician: draft.withoutTechnician === "true" ? true : undefined,
     });
   };
   const mapPoints = incidents.data ? toMapPoints(incidents.data.content) : [];
@@ -68,7 +81,7 @@ export function OperationsIncidentsPage() {
               <div><Label htmlFor="category">Categoría</Label><Select id="category" className="mt-2" value={draft.categoryId ?? ""} onChange={(e) => setDraft({ ...draft, categoryId: e.target.value })}><option value="">Todas</option>{categories.data?.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</Select></div>
               <div><Label htmlFor="department">Departamento</Label><Select id="department" className="mt-2" value={draft.departmentId ?? ""} onChange={(e) => setDraft({ ...draft, departmentId: e.target.value })}><option value="">Todos</option>{departments.data?.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</Select></div>
               <div className="lg:col-span-2"><Label htmlFor="district">Distrito</Label><Input id="district" className="mt-2" value={draft.district ?? ""} onChange={(e) => setDraft({ ...draft, district: e.target.value })} /></div>
-              <div className="flex items-end gap-2 lg:col-span-4"><Button type="submit"><Filter className="mr-2 size-4" />Aplicar filtros</Button><Button type="button" variant="ghost" onClick={() => { setDraft({}); setFilters(initialFilters); }}>Limpiar</Button></div>
+              <div className="flex flex-wrap items-end gap-2 lg:col-span-4"><Button type="submit"><Filter className="mr-2 size-4" />Aplicar filtros</Button><Button type="button" variant={draft.withoutTechnician === "true" ? "default" : "outline"} onClick={() => setDraft({ ...draft, withoutTechnician: draft.withoutTechnician === "true" ? "" : "true" })}>Sin técnico</Button><Button type="button" variant="ghost" onClick={() => { setDraft({}); commitFilters({ page: 0, size: 10 }); }}>Limpiar</Button></div>
             </form>
           </CardContent>
         </Card>
@@ -94,14 +107,56 @@ export function OperationsIncidentsPage() {
           {mapPoints.length > 0 && <IncidentMap ariaLabel="Mapa de incidencias filtradas" points={mapPoints} fitAll className="h-[32rem]" />}
         </CardContent></Card>}
 
-        {incidents.data && incidents.data.totalPages > 1 && <div className="mt-5 flex items-center justify-between"><p className="text-sm text-[var(--muted)]">Página {incidents.data.page + 1} de {incidents.data.totalPages}</p><div className="flex gap-2"><Button variant="outline" disabled={filters.page === 0} onClick={() => setFilters({ ...filters, page: filters.page - 1 })}><ChevronLeft className="size-4" /></Button><Button variant="outline" disabled={filters.page + 1 >= incidents.data.totalPages} onClick={() => setFilters({ ...filters, page: filters.page + 1 })}><ChevronRight className="size-4" /></Button></div></div>}
+        {incidents.data && incidents.data.totalPages > 1 && <div className="mt-5 flex items-center justify-between"><p className="text-sm text-[var(--muted)]">Página {incidents.data.page + 1} de {incidents.data.totalPages}</p><div className="flex gap-2"><Button variant="outline" disabled={filters.page === 0} onClick={() => commitFilters({ ...filters, page: filters.page - 1 })}><ChevronLeft className="size-4" /></Button><Button variant="outline" disabled={filters.page + 1 >= incidents.data.totalPages} onClick={() => commitFilters({ ...filters, page: filters.page + 1 })}><ChevronRight className="size-4" /></Button></div></div>}
       </section>
     </AppShell>
   );
 }
 
+function filtersFromSearch(params: URLSearchParams): OperationFilters {
+  const page = Number(params.get("page") ?? "0");
+  return {
+    page: Number.isFinite(page) && page >= 0 ? page : 0,
+    size: 10,
+    search: params.get("search") || undefined,
+    status: (params.get("status") || undefined) as OperationFilters["status"],
+    priority: (params.get("priority") || undefined) as Priority | undefined,
+    categoryId: params.get("categoryId") || undefined,
+    departmentId: params.get("departmentId") || undefined,
+    district: params.get("district") || undefined,
+    withoutTechnician: params.get("withoutTechnician") === "true" ? true : undefined,
+  };
+}
+
+function draftFromFilters(filters: OperationFilters): Record<string, string> {
+  return {
+    search: filters.search ?? "",
+    status: filters.status ?? "",
+    priority: filters.priority ?? "",
+    categoryId: filters.categoryId ?? "",
+    departmentId: filters.departmentId ?? "",
+    district: filters.district ?? "",
+    withoutTechnician: filters.withoutTechnician ? "true" : "",
+  };
+}
+
+const filterLabels: Record<string, string> = {
+  REPORTED: "Reportada",
+  VALIDATED: "Validada",
+  REJECTED: "Rechazada",
+  ASSIGNED: "Asignada",
+  IN_PROGRESS: "En curso",
+  RESOLVED: "Resuelta",
+  REOPENED: "Reabierta",
+  CLOSED: "Cerrada",
+  LOW: "Baja",
+  NORMAL: "Normal",
+  HIGH: "Alta",
+  URGENT: "Urgente",
+};
+
 function FilterSelect({ label, value, onChange, options }: { label: string; value?: string; onChange: (value: string) => void; options: string[] }) {
-  return <div><Label>{label}</Label><Select className="mt-2" value={value ?? ""} onChange={(event) => onChange(event.target.value)}><option value="">Todos</option>{options.map((option) => <option key={option} value={option}>{option.replaceAll("_", " ")}</option>)}</Select></div>;
+  return <div><Label>{label}</Label><Select className="mt-2" value={value ?? ""} onChange={(event) => onChange(event.target.value)}><option value="">Todos</option>{options.map((option) => <option key={option} value={option}>{filterLabels[option] ?? option.replaceAll("_", " ")}</option>)}</Select></div>;
 }
 
 function priorityLabel(priority: Priority) { return { LOW: "Baja", NORMAL: "Normal", HIGH: "Alta", URGENT: "Urgente" }[priority]; }

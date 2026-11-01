@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -8,6 +8,7 @@ import { OperationsIncidentsPage } from "@/pages/OperationsIncidentsPage";
 
 describe("OperationsIncidentsPage", () => {
   afterEach(() => {
+    cleanup();
     sessionStorage.clear();
     vi.unstubAllGlobals();
   });
@@ -59,5 +60,36 @@ describe("OperationsIncidentsPage", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Mapa" }));
     expect(await screen.findByText("Las incidencias de esta página no tienen coordenadas.")).toBeInTheDocument();
+  });
+
+  it("aplica los filtros recibidos desde el panel", async () => {
+    sessionStorage.setItem("citylife.accessToken", "operator-token");
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      let body: unknown;
+      if (url.includes("/api/users/me")) {
+        body = { id: "operator-id", email: "operator@example.com", displayName: "Operator", role: "OPERATOR" };
+      } else if (url.includes("/api/categories") || url.includes("/api/departments")) {
+        body = [];
+      } else {
+        body = { content: [], page: 0, size: 10, totalElements: 0, totalPages: 0 };
+      }
+      return new Response(JSON.stringify(body), { status: 200, headers: { "Content-Type": "application/json" } });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter initialEntries={["/operations/incidents?status=REPORTED&priority=URGENT"]}>
+          <AuthProvider><OperationsIncidentsPage /></AuthProvider>
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+
+    expect(await screen.findByText("No hay incidencias que coincidan con los filtros.")).toBeInTheDocument();
+    const incidentRequest = fetchMock.mock.calls.map(([input]) => String(input)).find((url) => url.includes("/api/operations/incidents?"));
+    expect(incidentRequest).toContain("status=REPORTED");
+    expect(incidentRequest).toContain("priority=URGENT");
   });
 });

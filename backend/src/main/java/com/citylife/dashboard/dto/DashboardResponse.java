@@ -11,6 +11,7 @@ public record DashboardResponse(
         List<CategoryBreakdownResponse> byCategory,
         List<BreakdownResponse> byPriority,
         ResolutionStatsResponse resolution,
-        OperationalIndicatorsResponse indicators
+        OperationalIndicatorsResponse indicators,
+        DashboardPulseResponse pulse
 ) {
 }

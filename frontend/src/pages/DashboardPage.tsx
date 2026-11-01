@@ -3,6 +3,7 @@ import {
   ArrowRight,
   BriefcaseBusiness,
   CheckCircle2,
+  CircleAlert,
   ClipboardList,
   Clock3,
   Inbox,
@@ -17,12 +18,16 @@ import { Link } from "react-router";
 
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/features/auth/components/AuthProvider";
 import { getDashboard } from "@/features/dashboard/api/dashboardApi";
-import { DashboardBreakdown } from "@/features/dashboard/components/DashboardBreakdown";
-import { DashboardMetricCard } from "@/features/dashboard/components/DashboardMetricCard";
-import type { Dashboard, DashboardBreakdown as DashboardBreakdownValue, DashboardIndicators } from "@/features/dashboard/types";
+import { ActionQueueCard } from "@/features/dashboard/components/ActionQueueCard";
+import { ActivitySparkline } from "@/features/dashboard/components/ActivitySparkline";
+import { DashboardDistribution, type DistributionItem } from "@/features/dashboard/components/DashboardDistribution";
+import { DashboardSection } from "@/features/dashboard/components/DashboardSection";
+import { OperationalPulse } from "@/features/dashboard/components/OperationalPulse";
+import { TerritoryPanel } from "@/features/dashboard/components/TerritoryPanel";
+import type { Dashboard, DashboardBreakdown, DashboardIndicators } from "@/features/dashboard/types";
 
 const statusLabels: Record<string, string> = {
   REPORTED: "Reportada",
@@ -42,18 +47,23 @@ const priorityLabels: Record<string, string> = {
   URGENT: "Urgente",
 };
 
+const statusColors: Record<string, string> = {
+  REPORTED: "bg-[var(--ink)]",
+  VALIDATED: "bg-[color-mix(in_srgb,var(--accent-ink)_55%,var(--accent))]",
+  ASSIGNED: "bg-[color-mix(in_srgb,var(--ink)_45%,var(--accent))]",
+  IN_PROGRESS: "bg-[color-mix(in_srgb,var(--ink)_20%,var(--accent))]",
+  RESOLVED: "bg-[var(--success)]",
+  REOPENED: "bg-[color-mix(in_srgb,var(--ink)_70%,var(--success))]",
+  REJECTED: "bg-[var(--line-strong)]",
+  CLOSED: "bg-[color-mix(in_srgb,var(--success)_58%,var(--line-strong))]",
+};
+
 const priorityColors: Record<string, string> = {
   LOW: "bg-[var(--line-strong)]",
   NORMAL: "bg-[color-mix(in_srgb,var(--accent)_55%,var(--surface-soft))]",
-  HIGH: "bg-[color-mix(in_srgb,var(--accent)_80%,var(--surface-soft))]",
-  URGENT: "bg-[var(--accent)]",
+  HIGH: "bg-[color-mix(in_srgb,var(--accent)_82%,var(--surface-soft))]",
+  URGENT: "bg-[var(--ink)]",
 };
-
-const roleCopy = {
-  CITIZEN: { title: "Mi panel" },
-  OPERATOR: { title: "Resumen de la operación" },
-  TECHNICIAN: { title: "Tu carga de trabajo" },
-} as const;
 
 export function DashboardPage() {
   const { token, user } = useAuth();
@@ -64,15 +74,14 @@ export function DashboardPage() {
   });
 
   const role = dashboardQuery.data?.scope ?? user?.role ?? "CITIZEN";
-  const copy = roleCopy[role as keyof typeof roleCopy] ?? roleCopy.CITIZEN;
+  const firstName = user?.displayName?.split(" ")[0];
 
   return (
     <AppShell>
       <section className="mx-auto max-w-6xl px-5 py-10 sm:px-6 sm:py-14">
-        <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-center">
-          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{copy.title}</h1>
-          <RoleActions role={role} />
-        </div>
+        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--muted)]">{formatToday()}</p>
+        <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">{greetingFor(role, firstName)}</h1>
+        <p className="mt-1 text-sm text-[var(--muted)]">{heroLineFor(role)}</p>
 
         {dashboardQuery.isLoading && <DashboardSkeleton />}
 
@@ -87,13 +96,125 @@ export function DashboardPage() {
           </Card>
         )}
 
-        {dashboardQuery.data && <DashboardContent dashboard={dashboardQuery.data} />}
+        {dashboardQuery.data && <DashboardContent dashboard={dashboardQuery.data} role={role} />}
       </section>
     </AppShell>
   );
 }
 
-function RoleActions({ role }: { role: string }) {
+function DashboardContent({ dashboard, role }: { dashboard: Dashboard; role: string }) {
+  const { indicators, pulse, resolution } = dashboard;
+  const reviewCount = role === "TECHNICIAN" ? indicators.awaitingStart : indicators.awaitingValidation;
+  const reviewLabel = role === "TECHNICIAN" ? "por iniciar" : reviewCount === 1 ? "requiere revisión" : "requieren revisión";
+  const incidentHref = (id: string) => role === "OPERATOR" ? `/operations/incidents/${id}` : role === "TECHNICIAN" ? `/work/${id}` : `/incidents/${id}`;
+  const listHref = (params?: Record<string, string>) => {
+    if (role === "OPERATOR") {
+      const query = new URLSearchParams(params).toString();
+      return `/operations/incidents${query ? `?${query}` : ""}`;
+    }
+    return role === "TECHNICIAN" ? "/work" : "/my-incidents";
+  };
+
+  return (
+    <>
+      <CityPulseHero dashboard={dashboard} role={role} reviewCount={reviewCount} reviewLabel={reviewLabel} />
+
+      <DashboardSection index="02" title="Qué necesita acción" aside={<Link className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--accent-ink)] hover:underline" to={listHref()}>Ver todo <ArrowRight className="size-3.5" /></Link>}>
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {actionCards(role, indicators, listHref).map((card) => <ActionQueueCard key={card.label} {...card} />)}
+        </div>
+      </DashboardSection>
+
+      <DashboardSection index="03" title="Rendimiento" aside={<span className="text-xs text-[var(--muted)]">Últimos 7 días</span>}>
+        <div className="grid gap-3 lg:grid-cols-3">
+          <ResolutionRateCard dashboard={dashboard} />
+          <ResolutionTimeCard resolution={resolution} />
+          <WeeklyActivityCard dashboard={dashboard} />
+        </div>
+      </DashboardSection>
+
+      <DashboardSection index="04" title="Distribución" aside={<span className="text-xs text-[var(--muted)]">{dashboard.totalIncidents} {dashboard.totalIncidents === 1 ? "incidencia" : "incidencias"}</span>}>
+        <div className="grid gap-3 lg:grid-cols-3">
+          <DashboardDistribution
+            title="Por estado"
+            items={toDistributionItems(dashboard.byStatus, statusLabels, statusColors, (key) => listHref({ status: key }))}
+            total={dashboard.totalIncidents}
+            emptyMessage="Todavía no hay incidencias registradas."
+          />
+          <DashboardDistribution
+            title="Por prioridad"
+            items={toDistributionItems(dashboard.byPriority, priorityLabels, priorityColors, (key) => listHref({ priority: key }))}
+            total={dashboard.totalIncidents}
+            emptyMessage="Todavía no hay prioridades que mostrar."
+          />
+          <DashboardDistribution
+            title="Por categoría"
+            items={dashboard.byCategory.map((item) => ({ key: item.id, label: item.name, count: item.count, colorClass: "bg-[var(--accent)]", href: listHref({ categoryId: item.id }) }))}
+            total={dashboard.totalIncidents}
+            variant="bars"
+            emptyMessage="Todavía no hay categorías con incidencias."
+          />
+        </div>
+      </DashboardSection>
+
+      <DashboardSection index="05" title="Dónde ocurre" aside={<span className="text-xs text-[var(--muted)]">{pulse.mapPoints.length > 0 ? "Actividad geolocalizada" : "Sin ubicaciones"}</span>}>
+        <TerritoryPanel
+          points={pulse.mapPoints}
+          districts={pulse.byDistrict}
+          incidentHref={incidentHref}
+          districtHref={(district) => listHref({ district })}
+        />
+      </DashboardSection>
+    </>
+  );
+}
+
+function CityPulseHero({ dashboard, role, reviewCount, reviewLabel }: { dashboard: Dashboard; role: string; reviewCount: number; reviewLabel: string }) {
+  const { pulse, indicators } = dashboard;
+  return (
+    <Card className="city-grid relative mt-8 overflow-hidden">
+      <div className="relative p-6 sm:p-8">
+        <div className="flex flex-col justify-between gap-8 lg:flex-row lg:items-start">
+          <div>
+            <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
+              <span className="relative flex size-2"><span className="absolute inline-flex size-full animate-ping rounded-full bg-[var(--accent)] opacity-60" /><span className="relative inline-flex size-2 rounded-full bg-[var(--accent)]" /></span>
+              En vivo · {workspaceFor(role)}
+            </div>
+            <div className="mt-5 flex flex-wrap items-end gap-x-4 gap-y-1">
+              <span className="text-7xl font-semibold leading-[0.88] tracking-[-0.07em] sm:text-8xl">{pulse.activeIncidents}</span>
+              <div className="pb-1">
+                <p className="text-lg font-semibold">incidencias activas</p>
+                <p className="text-sm text-[var(--muted)]">{pulse.createdToday > 0 ? `${pulse.createdToday} ${pulse.createdToday === 1 ? "nueva" : "nuevas"} hoy` : "Sin nuevas hoy"} · {pulse.createdLast7Days} esta semana</p>
+              </div>
+            </div>
+            <div className="mt-7 flex flex-wrap items-center gap-x-3 gap-y-2">
+              <HeroStat value={reviewCount} label={reviewLabel} />
+              <span className="h-1 w-1 rounded-full bg-[var(--line-strong)]" aria-hidden="true" />
+              <HeroStat value={pulse.resolvedToday} label={pulse.resolvedToday === 1 ? "resuelta hoy" : "resueltas hoy"} />
+              <span className="h-1 w-1 rounded-full bg-[var(--line-strong)]" aria-hidden="true" />
+              <HeroStat value={indicators.urgentOpen} label={indicators.urgentOpen === 1 ? "urgente abierta" : "urgentes abiertas"} emphasis={indicators.urgentOpen > 0} />
+            </div>
+          </div>
+          <div className="flex flex-col items-start gap-2 lg:items-end">
+            <RoleAction role={role} />
+          </div>
+        </div>
+        <OperationalPulse events={pulse.recentEvents} incidentHref={(id) => role === "OPERATOR" ? `/operations/incidents/${id}` : role === "TECHNICIAN" ? `/work/${id}` : `/incidents/${id}`} />
+      </div>
+    </Card>
+  );
+}
+
+function HeroStat({ value, label, emphasis = false }: { value: number; label: string; emphasis?: boolean }) {
+  return (
+    <span className="inline-flex items-baseline gap-1.5 text-sm text-[var(--muted)]">
+      <span className={`text-base font-semibold tabular-nums ${emphasis ? "text-[var(--ink)]" : "text-[var(--ink)]"}`}>{value}</span>
+      {label}
+    </span>
+  );
+}
+
+function RoleAction({ role }: { role: string }) {
   if (role === "OPERATOR") {
     return <Button asChild size="lg"><Link to="/operations/incidents"><BriefcaseBusiness className="mr-2 size-4" />Abrir bandeja<ArrowRight className="ml-2 size-4" /></Link></Button>;
   }
@@ -101,176 +222,131 @@ function RoleActions({ role }: { role: string }) {
     return <Button asChild size="lg"><Link to="/work"><Wrench className="mr-2 size-4" />Ver mis trabajos<ArrowRight className="ml-2 size-4" /></Link></Button>;
   }
   return (
-    <div className="flex flex-col gap-2 sm:flex-row">
+    <div className="flex flex-wrap gap-2">
       <Button asChild size="lg"><Link to="/incidents/new"><Plus className="mr-2 size-4" />Reportar incidencia</Link></Button>
-      <Button asChild size="lg" variant="outline"><Link to="/my-incidents"><ClipboardList className="mr-2 size-4" />Mis incidencias</Link></Button>
+      <Button asChild size="lg" variant="ghost"><Link to="/my-incidents"><ClipboardList className="mr-2 size-4" />Mis incidencias</Link></Button>
     </div>
   );
 }
 
-function DashboardContent({ dashboard }: { dashboard: Dashboard }) {
-  const metrics = metricCards(dashboard);
-  const resolutionRate = dashboard.totalIncidents > 0 ? Math.round((dashboard.indicators.resolved / dashboard.totalIncidents) * 100) : 0;
-
-  return (
-    <>
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {metrics.map((metric, index) => <DashboardMetricCard key={metric.label} {...metric} emphasis={index === 0} />)}
-      </div>
-
-      <div className="mt-5 grid gap-5 lg:grid-cols-3">
-        <ResolutionCard dashboard={dashboard} />
-        <OperationalCard dashboard={dashboard} resolutionRate={resolutionRate} />
-      </div>
-
-      <div className="mt-5 grid gap-5 lg:grid-cols-2">
-        <DashboardBreakdown
-          title="Por estado"
-          items={toStatusItems(dashboard.byStatus)}
-          total={dashboard.totalIncidents}
-          emptyMessage="Todavía no hay incidencias registradas."
-        />
-        <DashboardBreakdown
-          title="Por prioridad"
-          items={toPriorityItems(dashboard.byPriority)}
-          total={dashboard.totalIncidents}
-          emptyMessage="Todavía no hay prioridades que mostrar."
-        />
-      </div>
-
-      <div className="mt-5">
-        <DashboardBreakdown
-          title="Por categoría"
-          items={dashboard.byCategory.map((item) => ({
-            key: item.id,
-            label: item.name,
-            count: item.count,
-            barClassName: "bg-[var(--accent)]",
-          }))}
-          total={dashboard.totalIncidents}
-          emptyMessage="Todavía no hay categorías con incidencias."
-        />
-      </div>
-    </>
-  );
-}
-
-function metricCards(dashboard: Dashboard) {
-  const { indicators, totalIncidents } = dashboard;
-  if (dashboard.scope === "OPERATOR") {
+function actionCards(role: string, indicators: DashboardIndicators, listHref: (params?: Record<string, string>) => string) {
+  if (role === "OPERATOR") {
     return [
-      { label: "Incidencias registradas", value: totalIncidents, icon: <ClipboardList className="size-4" /> },
-      { label: "Pendientes de validar", value: indicators.awaitingValidation, icon: <Inbox className="size-4" /> },
-      { label: "Pendientes de asignar", value: indicators.awaitingAssignment, icon: <UserRound className="size-4" /> },
-      { label: "Urgentes abiertas", value: indicators.urgentOpen, icon: <Clock3 className="size-4" /> },
+      { label: "Pendientes de validar", count: indicators.awaitingValidation, context: "Esperando revisión municipal", href: listHref({ status: "REPORTED" }), icon: <Inbox className="size-5" />, accent: true },
+      { label: "Pendientes de asignar", count: indicators.awaitingAssignment, context: "Validadas sin destino operativo", href: listHref({ status: "VALIDATED" }), icon: <UserRound className="size-5" /> },
+      { label: "Sin técnico", count: indicators.assignedWithoutTechnician, context: "Asignadas sin una persona responsable", href: listHref({ status: "ASSIGNED", withoutTechnician: "true" }), icon: <Wrench className="size-5" /> },
+      { label: "Urgentes abiertas", count: indicators.urgentOpen, context: "Prioridad máxima sin cerrar", href: listHref({ priority: "URGENT" }), icon: <CircleAlert className="size-5" />, accent: true },
     ];
   }
-  if (dashboard.scope === "TECHNICIAN") {
+  if (role === "TECHNICIAN") {
     return [
-      { label: "Trabajos asignados", value: totalIncidents, icon: <Wrench className="size-4" /> },
-      { label: "Por iniciar", value: indicators.awaitingStart, icon: <Clock3 className="size-4" /> },
-      { label: "En curso", value: indicators.inProgress, icon: <TrendingUp className="size-4" /> },
-      { label: "Resueltas", value: indicators.resolved, icon: <CheckCircle2 className="size-4" /> },
+      { label: "Por iniciar", count: indicators.awaitingStart, context: "Asignadas pendientes de comenzar", href: listHref(), icon: <Clock3 className="size-5" />, accent: true },
+      { label: "En curso", count: indicators.inProgress, context: "Intervenciones abiertas ahora", href: listHref(), icon: <TrendingUp className="size-5" /> },
+      { label: "Urgentes abiertas", count: indicators.urgentOpen, context: "Prioridad máxima sin resolver", href: listHref(), icon: <CircleAlert className="size-5" />, accent: true },
+      { label: "Resueltas", count: indicators.resolved, context: "Trabajos completados", href: listHref(), icon: <CheckCircle2 className="size-5" /> },
     ];
   }
   return [
-    { label: "Tus incidencias", value: totalIncidents, icon: <ClipboardList className="size-4" /> },
-    { label: "Pendientes", value: indicators.awaitingValidation, icon: <Inbox className="size-4" /> },
-    { label: "En curso", value: indicators.activeWork, icon: <TrendingUp className="size-4" /> },
-    { label: "Resueltas", value: indicators.resolved, icon: <CheckCircle2 className="size-4" /> },
+    { label: "Pendientes de revisión", count: indicators.awaitingValidation, context: "En espera de revisión municipal", href: listHref(), icon: <Inbox className="size-5" />, accent: true },
+    { label: "En curso", count: indicators.activeWork, context: "Validadas o en intervención", href: listHref(), icon: <TrendingUp className="size-5" /> },
+    { label: "Urgentes abiertas", count: indicators.urgentOpen, context: "Prioridad máxima sin resolver", href: listHref(), icon: <CircleAlert className="size-5" />, accent: true },
+    { label: "Resueltas", count: indicators.resolved, context: "Trabajos completados", href: listHref(), icon: <CheckCircle2 className="size-5" /> },
   ];
 }
 
-function ResolutionCard({ dashboard }: { dashboard: Dashboard }) {
-  const { resolution } = dashboard;
+function ResolutionRateCard({ dashboard }: { dashboard: Dashboard }) {
+  const { totalIncidents, indicators, pulse } = dashboard;
+  const totalResolved = indicators.resolved;
+  const rate = totalIncidents > 0 ? Math.round((totalResolved / totalIncidents) * 100) : 0;
+  const weeklyRate = pulse.createdLast7Days > 0 ? Math.round((pulse.resolvedLast7Days / pulse.createdLast7Days) * 100) : 0;
+  const previousRate = pulse.createdPrevious7Days > 0 ? Math.round((pulse.resolvedPrevious7Days / pulse.createdPrevious7Days) * 100) : 0;
+  const delta = weeklyRate - previousRate;
+
+  return (
+    <div className="flex flex-col rounded-2xl bg-[var(--surface)] p-5">
+      <div className="flex items-center justify-between gap-3">
+        <h3 className="text-sm font-semibold">Tasa de resolución</h3>
+        <CheckCircle2 className="size-4 text-[var(--success)]" aria-hidden="true" />
+      </div>
+      <p className="mt-5 text-5xl font-semibold leading-none tracking-[-0.05em] tabular-nums">{rate}%</p>
+      <p className="mt-3 text-xs text-[var(--muted)]">{totalResolved} de {totalIncidents} {totalIncidents === 1 ? "incidencia cerrada" : "incidencias cerradas"}</p>
+      <div className="mt-auto pt-6">
+        <div className="h-2 overflow-hidden rounded-full bg-[var(--surface-soft)]" aria-hidden="true">
+          <span className="block h-full rounded-full bg-[var(--success)]" style={{ width: `${Math.max(rate, 2)}%` }} />
+        </div>
+        <p className={`mt-3 text-xs ${delta > 0 ? "text-[var(--success)]" : "text-[var(--muted)]"}`}>
+          {pulse.createdPrevious7Days > 0 ? `${delta >= 0 ? "+" : ""}${delta} pp de ritmo semanal` : `${pulse.resolvedLast7Days} ${pulse.resolvedLast7Days === 1 ? "resuelta" : "resueltas"} esta semana`}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function ResolutionTimeCard({ resolution }: { resolution: Dashboard["resolution"] }) {
   const hasAverage = resolution.averageSeconds !== null;
-  const progress = resolution.minimumSamples > 0
-    ? Math.min(100, Math.round((resolution.sampleSize / resolution.minimumSamples) * 100))
-    : 100;
-
+  const remaining = Math.max(resolution.minimumSamples - resolution.sampleSize, 0);
   return (
-    <Card className="bg-[var(--accent)]">
-      <CardHeader>
-        <p className="flex items-center gap-2 text-sm font-semibold text-[var(--ink)]"><Timer className="size-4" />Tiempo medio de resolución</p>
-      </CardHeader>
-      <CardContent>
-        {hasAverage ? (
-          <p className="text-4xl font-semibold tracking-tight text-[var(--ink)]">{formatDuration(resolution.averageSeconds!)}</p>
-        ) : (
-          <>
-            <p className="text-2xl font-semibold tracking-tight text-[var(--ink)]">Aún no hay datos suficientes</p>
-            <p className="mt-3 text-sm leading-6 text-[var(--accent-ink)]">{resolution.sampleSize} de {resolution.minimumSamples} resoluciones necesarias.</p>
-          </>
-        )}
-        <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--ink)_12%,transparent)]" aria-hidden="true">
-          <div className="h-full rounded-full bg-[var(--ink)]" style={{ width: `${progress}%` }} />
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function OperationalCard({ dashboard, resolutionRate }: { dashboard: Dashboard; resolutionRate: number }) {
-  const rows = operationalRows(dashboard.scope, dashboard.indicators, resolutionRate);
-  return (
-    <Card className="lg:col-span-2">
-      <CardHeader>
-        <h2 className="text-lg font-semibold">Indicadores operativos</h2>
-      </CardHeader>
-      <CardContent>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {rows.map((row) => (
-            <div key={row.label} className="rounded-xl bg-[var(--surface-soft)] px-4 py-3">
-              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">{row.label}</p>
-              <p className="mt-2 text-2xl font-semibold tracking-tight text-[var(--ink)]">{row.value}</p>
+    <div className="flex flex-col rounded-2xl bg-[var(--surface)] p-5">
+      <div className="flex items-center justify-between gap-3">
+        <h3 className="text-sm font-semibold">Tiempo medio de resolución</h3>
+        <Timer className="size-4 text-[var(--muted)]" aria-hidden="true" />
+      </div>
+      {hasAverage ? (
+        <>
+          <p className="mt-5 text-5xl font-semibold leading-none tracking-[-0.05em] tabular-nums">{formatDuration(resolution.averageSeconds!)}</p>
+          <p className="mt-3 text-xs text-[var(--muted)]">Basado en {resolution.sampleSize} resoluciones</p>
+          <div className="mt-auto pt-6">
+            <div className="h-2 overflow-hidden rounded-full bg-[var(--surface-soft)]" aria-hidden="true">
+              <span className="block h-full rounded-full bg-[var(--accent)]" style={{ width: "100%" }} />
             </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+          </div>
+        </>
+      ) : (
+        <>
+          <p className="mt-5 text-lg font-semibold leading-6">Aún no hay datos suficientes</p>
+          <p className="mt-2 text-xs leading-5 text-[var(--muted)]">{resolution.sampleSize} de {resolution.minimumSamples} resoluciones necesarias.</p>
+          <div className="mt-auto pt-6">
+            <div className="flex gap-1.5" aria-hidden="true">
+              {Array.from({ length: resolution.minimumSamples }).map((_, index) => (
+                <span key={index} className={`h-1.5 flex-1 rounded-full ${index < resolution.sampleSize ? "bg-[var(--accent)]" : "bg-[var(--surface-soft)]"}`} />
+              ))}
+            </div>
+            <p className="mt-3 text-xs text-[var(--muted)]">{remaining === 1 ? "Falta 1 resolución para calcular la media." : `Faltan ${remaining} resoluciones para calcular la media.`}</p>
+          </div>
+        </>
+      )}
+    </div>
   );
 }
 
-function operationalRows(scope: Dashboard["scope"], indicators: DashboardIndicators, resolutionRate: number) {
-  if (scope === "OPERATOR") {
-    return [
-      { label: "En ejecución", value: indicators.activeWork },
-      { label: "Sin técnico", value: indicators.assignedWithoutTechnician },
-      { label: "Resueltas", value: indicators.resolved },
-      { label: "Tasa de resolución", value: `${resolutionRate}%` },
-    ];
-  }
-  if (scope === "TECHNICIAN") {
-    return [
-      { label: "Carga activa", value: indicators.activeWork },
-      { label: "Urgentes abiertas", value: indicators.urgentOpen },
-      { label: "Resueltas", value: indicators.resolved },
-      { label: "Tasa de resolución", value: `${resolutionRate}%` },
-    ];
-  }
-  return [
-    { label: "En curso", value: indicators.activeWork },
-    { label: "Urgentes abiertas", value: indicators.urgentOpen },
-    { label: "Rechazadas", value: indicators.rejected },
-    { label: "Tasa de resolución", value: `${resolutionRate}%` },
-  ];
+function WeeklyActivityCard({ dashboard }: { dashboard: Dashboard }) {
+  const { pulse } = dashboard;
+  const delta = pulse.createdLast7Days - pulse.createdPrevious7Days;
+  return (
+    <div className="flex flex-col rounded-2xl bg-[var(--surface)] p-5">
+      <div className="flex items-center justify-between gap-3">
+        <h3 className="text-sm font-semibold">Actividad</h3>
+        <div className="flex items-center gap-3 text-[10px] font-medium text-[var(--muted)]">
+          <span className="inline-flex items-center gap-1.5"><span className="size-2 rounded-full bg-[var(--ink)]" />Nuevas</span>
+          <span className="inline-flex items-center gap-1.5"><span className="size-2 rounded-full bg-[var(--success)]" />Resueltas</span>
+        </div>
+      </div>
+      <div className="mt-4"><ActivitySparkline activity={pulse.activity} /></div>
+      <div className="mt-auto flex items-end justify-between gap-3 pt-4">
+        <p className="text-xs text-[var(--muted)]"><span className="font-semibold text-[var(--ink)]">{pulse.createdLast7Days}</span> {pulse.createdLast7Days === 1 ? "nueva" : "nuevas"} · <span className="font-semibold text-[var(--ink)]">{pulse.resolvedLast7Days}</span> {pulse.resolvedLast7Days === 1 ? "resuelta" : "resueltas"}</p>
+        <p className={`text-xs font-medium ${delta > 0 ? "text-[var(--success)]" : "text-[var(--muted)]"}`}>{delta > 0 ? `+${delta} vs. anterior` : delta < 0 ? `${delta} vs. anterior` : "Sin cambios"}</p>
+      </div>
+    </div>
+  );
 }
 
-function toStatusItems(values: DashboardBreakdownValue[]) {
+function toDistributionItems(values: DashboardBreakdown[], labels: Record<string, string>, colors: Record<string, string>, href: (key: string) => string): DistributionItem[] {
   return values.map((item) => ({
     key: item.key,
-    label: statusLabels[item.key] ?? item.key,
+    label: labels[item.key] ?? item.key,
     count: item.count,
-    barClassName: "bg-[var(--accent)]",
-  }));
-}
-
-function toPriorityItems(values: DashboardBreakdownValue[]) {
-  return values.map((item) => ({
-    key: item.key,
-    label: priorityLabels[item.key] ?? item.key,
-    count: item.count,
-    barClassName: priorityColors[item.key] ?? "bg-[var(--line-strong)]",
+    colorClass: colors[item.key] ?? "bg-[var(--line-strong)]",
+    href: href(item.key),
   }));
 }
 
@@ -288,15 +364,35 @@ function formatDuration(seconds: number) {
   return remainingHours > 0 ? `${days} d ${remainingHours} h` : `${days} d`;
 }
 
+function greetingFor(role: string, firstName?: string) {
+  const hour = new Date().getHours();
+  const salutation = hour < 12 ? "Buenos días" : hour < 20 ? "Buenas tardes" : "Buenas noches";
+  if (role === "OPERATOR") return `${salutation}, equipo`;
+  return `${salutation}, ${firstName || "ciudad"}`;
+}
+
+function heroLineFor(role: string) {
+  if (role === "OPERATOR") return "Así está la ciudad hoy.";
+  if (role === "TECHNICIAN") return "Tu jornada de campo, de un vistazo.";
+  return "Así avanzan tus avisos.";
+}
+
+function workspaceFor(role: string) {
+  if (role === "OPERATOR") return "Centro de control";
+  if (role === "TECHNICIAN") return "Unidad de campo";
+  return "Ciudadanía";
+}
+
+function formatToday() {
+  return new Intl.DateTimeFormat("es-ES", { weekday: "long", day: "numeric", month: "long" }).format(new Date());
+}
+
 function DashboardSkeleton() {
   return (
     <div className="mt-8 space-y-5" aria-label="Cargando panel">
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, index) => <div key={index} className="h-32 animate-pulse rounded-2xl bg-[var(--surface)]" />)}
-      </div>
-      <div className="grid gap-5 lg:grid-cols-3">
-        <div className="h-56 animate-pulse rounded-2xl bg-[var(--surface)]" />
-        <div className="h-56 animate-pulse rounded-2xl bg-[var(--surface)] lg:col-span-2" />
+      <div className="h-[28rem] animate-pulse rounded-2xl bg-[var(--surface)]" />
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, index) => <div key={index} className="h-40 animate-pulse rounded-2xl bg-[var(--surface)]" />)}
       </div>
     </div>
   );

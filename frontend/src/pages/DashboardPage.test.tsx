@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -42,10 +42,35 @@ const baseDashboard: Dashboard = {
     rejected: 1,
     assignedWithoutTechnician: 1,
   },
+  pulse: {
+    activeIncidents: 6,
+    createdToday: 1,
+    resolvedToday: 1,
+    createdLast7Days: 5,
+    resolvedLast7Days: 4,
+    createdPrevious7Days: 3,
+    resolvedPrevious7Days: 2,
+    activity: [
+      { date: "2026-10-26", created: 0, resolved: 0 },
+      { date: "2026-10-27", created: 1, resolved: 1 },
+      { date: "2026-10-28", created: 0, resolved: 0 },
+      { date: "2026-10-29", created: 1, resolved: 1 },
+      { date: "2026-10-30", created: 1, resolved: 1 },
+      { date: "2026-10-31", created: 1, resolved: 0 },
+      { date: "2026-11-01", created: 1, resolved: 1 },
+    ],
+    recentEvents: [],
+    byDistrict: [
+      { district: "Centro", count: 6 },
+      { district: "Norte", count: 4 },
+    ],
+    mapPoints: [],
+  },
 };
 
 describe("DashboardPage", () => {
   afterEach(() => {
+    cleanup();
     sessionStorage.clear();
     vi.unstubAllGlobals();
   });
@@ -56,15 +81,15 @@ describe("DashboardPage", () => {
 
     renderDashboard();
 
-    expect(await screen.findByText("Incidencias registradas")).toBeInTheDocument();
-    expect(screen.getByText("Resumen de la operación")).toBeInTheDocument();
-    expect(screen.getByText("10")).toBeInTheDocument();
+    expect(await screen.findByText("incidencias activas")).toBeInTheDocument();
+    expect(await screen.findByText("Así está la ciudad hoy.")).toBeInTheDocument();
     expect(screen.getByText("Pendientes de validar")).toBeInTheDocument();
     expect(screen.getByText("Urgentes abiertas")).toBeInTheDocument();
     expect(screen.getByText("9 h")).toBeInTheDocument();
     expect(screen.getByText("Alumbrado")).toBeInTheDocument();
     expect(screen.getByText("Sin técnico")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Abrir bandeja/ })).toHaveAttribute("href", "/operations/incidents");
+    expect(screen.getByRole("link", { name: /Pendientes de validar/ })).toHaveAttribute("href", "/operations/incidents?status=REPORTED");
   });
 
   it("adapta los indicadores al técnico y explica cuándo faltan muestras", async () => {
@@ -78,10 +103,10 @@ describe("DashboardPage", () => {
 
     renderDashboard();
 
-    expect(await screen.findByText("Trabajos asignados")).toBeInTheDocument();
-    expect(screen.getByText("Tu carga de trabajo")).toBeInTheDocument();
+    expect(await screen.findByText("incidencias activas")).toBeInTheDocument();
+    expect(await screen.findByText("Tu jornada de campo, de un vistazo.")).toBeInTheDocument();
     expect(screen.getByText("Por iniciar")).toBeInTheDocument();
-    expect(screen.getByText("Carga activa")).toBeInTheDocument();
+    expect(screen.getByText("Intervenciones abiertas ahora")).toBeInTheDocument();
     expect(screen.getByText("Aún no hay datos suficientes")).toBeInTheDocument();
     expect(screen.getByText(/2 de 3 resoluciones necesarias/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Ver mis trabajos/ })).toHaveAttribute("href", "/work");

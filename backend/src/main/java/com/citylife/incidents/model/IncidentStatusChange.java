@@ -74,6 +74,7 @@ public class IncidentStatusChange {
     }
 
     public UUID getId() { return id; }
+    public Incident getIncident() { return incident; }
     public IncidentStatus getPreviousStatus() { return previousStatus; }
     public IncidentStatus getNewStatus() { return newStatus; }
     public User getChangedBy() { return changedBy; }

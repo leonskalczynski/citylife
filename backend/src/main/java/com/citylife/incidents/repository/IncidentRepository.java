@@ -4,6 +4,7 @@ import com.citylife.incidents.model.Incident;
 import com.citylife.incidents.model.IncidentStatus;
 import com.citylife.incidents.model.Priority;
 import com.citylife.users.model.User;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -100,6 +101,47 @@ public interface IncidentRepository extends JpaRepository<Incident, UUID>, JpaSp
             """)
     List<ResolutionSample> findResolutionSamplesForDashboard(@Param("createdById") UUID createdById, @Param("assignedToId") UUID assignedToId);
 
+    @Query("""
+            select i.createdAt as createdAt, i.resolvedAt as resolvedAt
+            from Incident i
+            where (:createdById is null or i.createdBy.id = :createdById)
+              and (:assignedToId is null or i.assignedTo.id = :assignedToId)
+              and (i.createdAt >= :from or i.resolvedAt >= :from)
+            """)
+    List<ActivitySample> findActivitySamplesForDashboard(
+            @Param("createdById") UUID createdById,
+            @Param("assignedToId") UUID assignedToId,
+            @Param("from") Instant from
+    );
+
+    @Query("""
+            select i.district as district, count(i) as total
+            from Incident i
+            where (:createdById is null or i.createdBy.id = :createdById)
+              and (:assignedToId is null or i.assignedTo.id = :assignedToId)
+            group by i.district
+            order by count(i) desc
+            """)
+    List<DistrictCount> countByDistrictForDashboard(
+            @Param("createdById") UUID createdById,
+            @Param("assignedToId") UUID assignedToId
+    );
+
+    @Query("""
+            select i
+            from Incident i
+            where (:createdById is null or i.createdBy.id = :createdById)
+              and (:assignedToId is null or i.assignedTo.id = :assignedToId)
+              and i.latitude is not null
+              and i.longitude is not null
+            order by i.updatedAt desc
+            """)
+    List<Incident> findMapPointsForDashboard(
+            @Param("createdById") UUID createdById,
+            @Param("assignedToId") UUID assignedToId,
+            Pageable pageable
+    );
+
     interface StatusCount {
         IncidentStatus getStatus();
         long getTotal();
@@ -116,7 +158,17 @@ public interface IncidentRepository extends JpaRepository<Incident, UUID>, JpaSp
         long getTotal();
     }
 
+    interface DistrictCount {
+        String getDistrict();
+        long getTotal();
+    }
+
     interface ResolutionSample {
+        Instant getCreatedAt();
+        Instant getResolvedAt();
+    }
+
+    interface ActivitySample {
         Instant getCreatedAt();
         Instant getResolvedAt();
     }

@@ -55,10 +55,11 @@ public class IncidentOperationsController {
             @RequestParam(required = false) UUID departmentId,
             @RequestParam(required = false) String district,
             @RequestParam(required = false) String search,
+            @RequestParam(required = false) Boolean withoutTechnician,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
-        return operationsService.search(status, priority, categoryId, departmentId, district, search, page, size);
+        return operationsService.search(status, priority, categoryId, departmentId, district, search, withoutTechnician, page, size);
     }
 
     @GetMapping("/{incidentId}")

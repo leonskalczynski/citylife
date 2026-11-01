@@ -107,7 +107,12 @@ class DashboardIntegrationTest {
                 .andExpect(jsonPath("$.indicators.urgentOpen").value(1))
                 .andExpect(jsonPath("$.indicators.resolved").value(4))
                 .andExpect(jsonPath("$.indicators.rejected").value(1))
-                .andExpect(jsonPath("$.indicators.assignedWithoutTechnician").value(1));
+                .andExpect(jsonPath("$.indicators.assignedWithoutTechnician").value(1))
+                .andExpect(jsonPath("$.pulse.activeIncidents").value(5))
+                .andExpect(jsonPath("$.pulse.activity.length()").value(7))
+                .andExpect(jsonPath("$.pulse.byDistrict[0].district").value("Centro"))
+                .andExpect(jsonPath("$.pulse.byDistrict[0].count").value(10))
+                .andExpect(jsonPath("$.pulse.recentEvents.length()").value(0));
     }
 
     @Test
