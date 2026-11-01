@@ -1,0 +1,11 @@
+.env
+.idea/
+.vscode/
+*.iml
+
+frontend/node_modules/
+frontend/dist/
+frontend/coverage/
+
+backend/target/
+

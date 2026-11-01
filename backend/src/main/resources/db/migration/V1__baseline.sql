@@ -1,0 +1,1 @@
+-- Baseline de infraestructura. Las tablas del dominio se añadirán en la fase que las necesite.
