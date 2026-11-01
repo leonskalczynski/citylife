@@ -205,6 +205,15 @@ Flyway crea cuatro departamentos de desarrollo. El usuario `operator@example.com
 - Cada archivo admite hasta 5 MB y cada incidencia hasta 10 adjuntos.
 - El almacenamiento local predeterminado es `backend/data/attachments`, ignorado por Git. Para pruebas se usa `backend/target/test-attachments`.
 
+## Mapas y geolocalización
+
+- El formulario ciudadano permite marcar una posición haciendo clic o arrastrando el marcador.
+- “Usar mi ubicación” solicita permiso al navegador y redondea las coordenadas antes de enviarlas.
+- La ubicación sigue siendo opcional; denegar el permiso no bloquea la creación de incidencias.
+- Los detalles de ciudadanía, operación y técnico muestran un mapa cuando existen coordenadas.
+- La bandeja de operación alterna entre tabla y mapa para la página de resultados actual.
+- Leaflet carga teselas de OpenStreetMap y mantiene visible su atribución. La geolocalización funciona en `localhost`; otros entornos requieren HTTPS.
+
 ## Problemas habituales
 
 ### El puerto 5432 está ocupado

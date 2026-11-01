@@ -58,6 +58,7 @@ La opción inicial más sencilla será:
 - una instancia de la aplicación Spring Boot;
 - PostgreSQL administrado o con copias de seguridad externas;
 - almacenamiento persistente para adjuntos, montado fuera de la imagen de aplicación;
+- acceso HTTPS y conectividad saliente al proveedor de teselas cartográficas;
 - migraciones Flyway ejecutadas por la aplicación durante un despliegue controlado;
 - logs de aplicación enviados a la salida estándar;
 - health check contra `/actuator/health`.
@@ -83,6 +84,7 @@ No se requieren microservicios, Kubernetes ni mensajería distribuida para el MV
 - política de copias de seguridad y restauración verificada;
 - copia coordinada de PostgreSQL y del volumen de adjuntos;
 - límites de tamaño y tipo de archivos configurados;
+- política de privacidad que explique el permiso de ubicación y el proveedor cartográfico;
 - logs sin credenciales, JWT ni información sensible innecesaria;
 - CORS restringido al frontend real;
 - errores sin stack traces públicos;

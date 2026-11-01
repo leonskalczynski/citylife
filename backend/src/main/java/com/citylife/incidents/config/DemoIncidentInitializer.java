@@ -47,15 +47,15 @@ public class DemoIncidentInitializer implements ApplicationRunner {
         User citizen = userRepository.findByEmailIgnoreCase("citizen@example.com").orElseThrow();
         if (incidentRepository.countByCreatedBy(citizen) > 0) return;
 
-        create(citizen, "LIGHTING", "Farola apagada en la plaza", "La farola junto al banco central no enciende por la noche.", "Plaza Mayor, 3", "Centro");
-        create(citizen, "CLEANING", "Acumulación de residuos", "Hay varias bolsas fuera del contenedor desde hace dos días.", "Calle del Río, 18", "Norte");
-        create(citizen, "ROADS", "Baldosa suelta en la acera", "La baldosa se mueve al pisarla y puede provocar una caída.", "Avenida del Parque, 42", "Este");
+        create(citizen, "LIGHTING", "Farola apagada en la plaza", "La farola junto al banco central no enciende por la noche.", 40.41691, -3.70352, "Plaza Mayor, 3", "Centro");
+        create(citizen, "CLEANING", "Acumulación de residuos", "Hay varias bolsas fuera del contenedor desde hace dos días.", 40.42411, -3.69572, "Calle del Río, 18", "Norte");
+        create(citizen, "ROADS", "Baldosa suelta en la acera", "La baldosa se mueve al pisarla y puede provocar una caída.", 40.42045, -3.67561, "Avenida del Parque, 42", "Este");
         createAssignedWork(citizen);
     }
 
-    private void create(User citizen, String categoryCode, String title, String description, String address, String district) {
+    private void create(User citizen, String categoryCode, String title, String description, Double latitude, Double longitude, String address, String district) {
         Category category = categoryRepository.findByCode(categoryCode).orElseThrow();
-        Incident incident = incidentRepository.save(new Incident(title, description, category, null, null, address, district, citizen));
+        Incident incident = incidentRepository.save(new Incident(title, description, category, latitude, longitude, address, district, citizen));
         auditService.record(incident, null, citizen, null);
     }
 
@@ -71,8 +71,8 @@ public class DemoIncidentInitializer implements ApplicationRunner {
                 "Banco dañado en la plaza",
                 "El respaldo del banco está suelto y puede causar una caída.",
                 category,
-                null,
-                null,
+                40.41556,
+                -3.71009,
                 "Plaza de la Villa, 5",
                 "Centro",
                 citizen

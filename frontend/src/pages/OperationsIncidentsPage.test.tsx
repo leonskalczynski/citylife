@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -56,5 +56,8 @@ describe("OperationsIncidentsPage", () => {
     expect(await screen.findByText("Farola apagada")).toBeInTheDocument();
     expect(screen.getByText("1 incidencias")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Revisar" })).toHaveAttribute("href", "/operations/incidents/incident-id");
+
+    fireEvent.click(screen.getByRole("button", { name: "Mapa" }));
+    expect(await screen.findByText("Las incidencias de esta página no tienen coordenadas.")).toBeInTheDocument();
   });
 });

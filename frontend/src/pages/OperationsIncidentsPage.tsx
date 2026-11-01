@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight, Filter, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, Filter, List, Map as MapIcon, Search } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { Link } from "react-router";
 
@@ -13,7 +13,8 @@ import { useAuth } from "@/features/auth/components/AuthProvider";
 import { getCategories } from "@/features/incidents/api/incidentsApi";
 import { getDepartments, getOperationIncidents } from "@/features/incidents/api/operationsApi";
 import { IncidentStatusBadge } from "@/features/incidents/components/IncidentStatusBadge";
-import type { OperationFilters, Priority } from "@/features/incidents/types";
+import { IncidentMap, type MapPoint } from "@/features/incidents/components/IncidentMap";
+import type { Incident, OperationFilters, Priority } from "@/features/incidents/types";
 
 const initialFilters: OperationFilters = { page: 0, size: 10 };
 
@@ -21,6 +22,7 @@ export function OperationsIncidentsPage() {
   const { token } = useAuth();
   const [draft, setDraft] = useState<Record<string, string>>({});
   const [filters, setFilters] = useState<OperationFilters>(initialFilters);
+  const [view, setView] = useState<"list" | "map">("list");
   const incidents = useQuery({
     queryKey: ["operation-incidents", filters],
     queryFn: ({ signal }) => getOperationIncidents(token!, filters, signal),
@@ -41,6 +43,7 @@ export function OperationsIncidentsPage() {
       district: draft.district || undefined,
     });
   };
+  const mapPoints = incidents.data ? toMapPoints(incidents.data.content) : [];
 
   return (
     <AppShell>
@@ -48,7 +51,13 @@ export function OperationsIncidentsPage() {
         <p className="text-sm font-bold uppercase tracking-[0.2em] text-slate-500">Operación</p>
         <div className="mt-2 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
           <div><h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Bandeja de incidencias</h1><p className="mt-3 text-slate-600">Revisa, prioriza y asigna los avisos recibidos.</p></div>
-          {incidents.data && <p className="text-sm text-slate-500">{incidents.data.totalElements} incidencias</p>}
+          <div className="flex items-center gap-3">
+            {incidents.data && <p className="text-sm text-slate-500">{incidents.data.totalElements} incidencias</p>}
+            <div className="flex rounded-md border border-slate-200 bg-white p-1" aria-label="Vista de incidencias">
+              <Button type="button" className="h-8 px-3" variant={view === "list" ? "default" : "outline"} onClick={() => setView("list")}><List className="mr-2 size-4" />Lista</Button>
+              <Button type="button" className="h-8 px-3" variant={view === "map" ? "default" : "outline"} onClick={() => setView("map")}><MapIcon className="mr-2 size-4" />Mapa</Button>
+            </div>
+          </div>
         </div>
 
         <Card className="mt-8 shadow-none">
@@ -65,7 +74,7 @@ export function OperationsIncidentsPage() {
           </CardContent>
         </Card>
 
-        <Card className="mt-5 overflow-hidden shadow-none">
+        {view === "list" && <Card className="mt-5 overflow-hidden shadow-none">
           {incidents.isLoading && <div className="p-10 text-center text-slate-500">Cargando incidencias…</div>}
           {incidents.isError && <div className="p-10 text-center text-red-700">No se ha podido cargar la bandeja.</div>}
           {incidents.data?.content.length === 0 && <div className="p-12 text-center text-slate-500">No hay incidencias que coincidan con los filtros.</div>}
@@ -77,7 +86,14 @@ export function OperationsIncidentsPage() {
               </table>
             </div>
           )}
-        </Card>
+        </Card>}
+
+        {view === "map" && <Card className="mt-5 shadow-none"><CardContent className="py-5">
+          {incidents.isLoading && <div className="p-10 text-center text-slate-500">Cargando incidencias…</div>}
+          {incidents.isError && <div className="p-10 text-center text-red-700">No se ha podido cargar el mapa.</div>}
+          {incidents.data && mapPoints.length === 0 && <div className="rounded-md bg-slate-50 p-12 text-center text-slate-600">Las incidencias de esta página no tienen coordenadas.</div>}
+          {mapPoints.length > 0 && <><IncidentMap ariaLabel="Mapa de incidencias filtradas" points={mapPoints} fitAll className="h-[32rem]" /><p className="mt-3 text-xs text-slate-500">Mostrando {mapPoints.length} de {incidents.data?.content.length} incidencias de esta página con ubicación.</p></>}
+        </CardContent></Card>}
 
         {incidents.data && incidents.data.totalPages > 1 && <div className="mt-5 flex items-center justify-between"><p className="text-sm text-slate-500">Página {incidents.data.page + 1} de {incidents.data.totalPages}</p><div className="flex gap-2"><Button variant="outline" disabled={filters.page === 0} onClick={() => setFilters({ ...filters, page: filters.page - 1 })}><ChevronLeft className="size-4" /></Button><Button variant="outline" disabled={filters.page + 1 >= incidents.data.totalPages} onClick={() => setFilters({ ...filters, page: filters.page + 1 })}><ChevronRight className="size-4" /></Button></div></div>}
       </section>
@@ -91,3 +107,13 @@ function FilterSelect({ label, value, onChange, options }: { label: string; valu
 
 function priorityLabel(priority: Priority) { return { LOW: "Baja", NORMAL: "Normal", HIGH: "Alta", URGENT: "Urgente" }[priority]; }
 function formatDate(value: string) { return new Intl.DateTimeFormat("es-ES", { dateStyle: "short", timeStyle: "short" }).format(new Date(value)); }
+
+function toMapPoints(incidents: Incident[]): MapPoint[] {
+  return incidents.flatMap((incident) => incident.latitude == null || incident.longitude == null ? [] : [{
+    id: incident.id,
+    latitude: incident.latitude,
+    longitude: incident.longitude,
+    label: incident.title,
+    popup: <div className="min-w-44"><p className="font-semibold text-slate-950">{incident.title}</p><p className="mt-1 text-xs text-slate-600">{incident.category.name} · {incident.district || "Sin distrito"}</p><Link className="mt-3 inline-block text-sm font-semibold text-[var(--accent-ink)]" to={`/operations/incidents/${incident.id}`}>Revisar incidencia</Link></div>,
+  }]);
+}

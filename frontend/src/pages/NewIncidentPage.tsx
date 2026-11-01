@@ -14,6 +14,7 @@ import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/features/auth/components/AuthProvider";
 import { createIncident, getCategories } from "@/features/incidents/api/incidentsApi";
+import { IncidentLocationPicker } from "@/features/incidents/components/IncidentLocationPicker";
 import { createIncidentSchema } from "@/features/incidents/lib/schemas";
 import { ApiClientError } from "@/lib/api";
 
@@ -25,7 +26,7 @@ export function NewIncidentPage() {
   const queryClient = useQueryClient();
   const form = useForm<IncidentForm>({
     resolver: zodResolver(createIncidentSchema),
-    defaultValues: { title: "", description: "", categoryId: "", address: "", district: "" },
+    defaultValues: { title: "", description: "", categoryId: "", address: "", district: "", latitude: undefined, longitude: undefined },
   });
   const categories = useQuery({
     queryKey: ["categories"],
@@ -40,6 +41,14 @@ export function NewIncidentPage() {
   });
 
   const apiError = mutation.error instanceof ApiClientError ? mutation.error.body.message : null;
+  const latitude = form.watch("latitude");
+  const longitude = form.watch("longitude");
+  const position = latitude != null && longitude != null ? { latitude, longitude } : undefined;
+
+  const setPosition = (next?: { latitude: number; longitude: number }) => {
+    form.setValue("latitude", next?.latitude, { shouldDirty: true, shouldValidate: true });
+    form.setValue("longitude", next?.longitude, { shouldDirty: true, shouldValidate: true });
+  };
 
   return (
     <AppShell>
@@ -87,14 +96,11 @@ export function NewIncidentPage() {
                   <Field label="Distrito" htmlFor="district" error={form.formState.errors.district?.message}>
                     <Input id="district" placeholder="Ej. Centro" {...form.register("district")} />
                   </Field>
-                  <Field label="Latitud" htmlFor="latitude" error={form.formState.errors.latitude?.message}>
-                    <Input id="latitude" type="number" step="any" placeholder="40.4168" {...form.register("latitude", { setValueAs: optionalNumber })} />
-                  </Field>
-                  <Field label="Longitud" htmlFor="longitude" error={form.formState.errors.longitude?.message}>
-                    <Input id="longitude" type="number" step="any" placeholder="-3.7038" {...form.register("longitude", { setValueAs: optionalNumber })} />
-                  </Field>
                 </div>
-                <p className="mt-3 text-xs text-slate-500">El selector visual de mapa se incorporará en una fase posterior.</p>
+                <input type="hidden" {...form.register("latitude", { setValueAs: optionalNumber })} />
+                <input type="hidden" {...form.register("longitude", { setValueAs: optionalNumber })} />
+                <div className="mt-5"><IncidentLocationPicker value={position} onChange={setPosition} /></div>
+                {form.formState.errors.longitude?.message && <p className="mt-3 text-sm text-red-700">{form.formState.errors.longitude.message}</p>}
               </div>
 
               {categories.isError && <p role="alert" className="rounded-md bg-red-50 p-3 text-sm text-red-800">No se han podido cargar las categorías.</p>}

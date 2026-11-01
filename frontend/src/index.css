@@ -16,3 +16,26 @@
 body { margin: 0; min-width: 320px; min-height: 100vh; }
 button, a { -webkit-tap-highlight-color: transparent; }
 
+.citylife-map-marker {
+  width: 28px !important;
+  height: 28px !important;
+  border: 2px solid #ffffff;
+  border-radius: 50% 50% 50% 0;
+  background: var(--accent-ink);
+  box-shadow: 0 3px 10px rgb(15 23 42 / 28%);
+  transform: rotate(-45deg);
+}
+
+.citylife-map-marker span {
+  display: block;
+  width: 8px;
+  height: 8px;
+  margin: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.leaflet-container { font-family: inherit; }
+.leaflet-control-attribution { font-size: 10px; }
+.leaflet-popup-content-wrapper, .leaflet-popup-tip { border-radius: 6px; }
+

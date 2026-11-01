@@ -76,6 +76,8 @@ src/
 
 Los componentes de presentación no conocen PostgreSQL ni contienen reglas sensibles. TanStack Query gestiona caché, estados de carga e invalidaciones para autenticación, categorías e incidencias; React Hook Form y Zod validan los formularios antes de enviarlos.
 
+Los mapas se implementan como componentes compartidos con React Leaflet. OpenStreetMap suministra las teselas y la atribución se muestra en cada mapa. Las coordenadas forman parte del contrato de incidencia; la geolocalización del navegador solo se solicita por acción explícita y nunca es obligatoria para reportar.
+
 ## Modelo de dominio inicial
 
 | Entidad | Responsabilidad |
@@ -109,6 +111,7 @@ El frontend solicita acciones concretas como validar, rechazar, asignar o resolv
 - El frontend conserva el access token en `sessionStorage`; no existen refresh tokens en el MVP actual.
 - autorización por rol y por recurso en Spring Security.
 - CORS limitado al origen configurado.
+- la geolocalización requiere permiso del navegador y, fuera de `localhost`, un origen HTTPS;
 - secretos y credenciales mediante variables de entorno.
 - Flyway es la única fuente de cambios de esquema; Hibernate usa `ddl-auto: validate`.
 - Los adjuntos se sirven solo tras autorizar el recurso; se aceptan firmas reales JPEG, PNG y WebP, con 5 MB por archivo y 10 archivos por incidencia.

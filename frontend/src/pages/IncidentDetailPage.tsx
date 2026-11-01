@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useAuth } from "@/features/auth/components/AuthProvider";
 import { getIncident, getIncidentAttachments, getIncidentHistory, uploadIncidentAttachment } from "@/features/incidents/api/incidentsApi";
 import { IncidentAttachments } from "@/features/incidents/components/IncidentAttachments";
+import { IncidentLocationCard } from "@/features/incidents/components/IncidentLocationCard";
 import { IncidentStatusBadge } from "@/features/incidents/components/IncidentStatusBadge";
 import { IncidentTimeline } from "@/features/incidents/components/IncidentTimeline";
 import type { IncidentStatus } from "@/features/incidents/types";
@@ -84,6 +85,7 @@ export function IncidentDetailPage() {
               </CardContent>
             </Card>
             <div className="mt-5"><IncidentAttachments attachments={attachmentsQuery.data} token={token!} isLoading={attachmentsQuery.isLoading} isError={attachmentsQuery.isError} canUpload isUploading={uploadMutation.isPending} uploadError={uploadMutation.error} onUpload={(file) => uploadMutation.mutate(file)} /></div>
+            <div className="mt-5"><IncidentLocationCard incident={query.data} /></div>
             <div className="mt-5"><IncidentTimeline changes={historyQuery.data} isLoading={historyQuery.isLoading} isError={historyQuery.isError} /></div>
           </>
         )}

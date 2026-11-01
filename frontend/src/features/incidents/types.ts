@@ -45,8 +45,8 @@ export type Incident = {
   category: Category;
   status: IncidentStatus;
   priority: Priority;
-  latitude?: number;
-  longitude?: number;
+  latitude?: number | null;
+  longitude?: number | null;
   address?: string;
   district?: string;
   createdBy: UserSummary;

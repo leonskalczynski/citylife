@@ -17,7 +17,7 @@ El MVP se desarrollará de forma incremental e incluirá:
 - fotografías y otros archivos asociados;
 - filtros, paginación, mapa y métricas básicas.
 
-Las Fases 1 a 7 están implementadas: infraestructura local, autenticación JWT, flujos de ciudadanía, operación y trabajo técnico, historial auditable y adjuntos seguros. Ciudadanía y técnicos pueden añadir evidencias visuales; operación puede revisarlas. El backend comprueba propiedad o asignación, firma real del archivo, tamaño y límite por incidencia.
+Las Fases 1 a 8 están implementadas: infraestructura local, autenticación JWT, flujos de ciudadanía, operación y trabajo técnico, historial auditable, adjuntos seguros y mapas. La ciudadanía puede marcar una ubicación en el mapa o usar la geolocalización del navegador; los tres perfiles ven la posición y operación dispone de una vista cartográfica de los resultados filtrados.
 
 ## Tecnologías y propósito
 
@@ -26,6 +26,7 @@ Las Fases 1 a 7 están implementadas: infraestructura local, autenticación JWT,
 | React + TypeScript | Interfaz web tipada y organizada por funcionalidad |
 | Vite | Servidor de desarrollo y build del frontend |
 | Tailwind CSS + shadcn/ui | Estilos y componentes accesibles y reutilizables |
+| Leaflet + OpenStreetMap | Selección y visualización cartográfica sin acoplar el dominio a un proveedor propietario |
 | React Router | Navegación de la SPA |
 | Spring Boot + Java 21 | API REST y reglas de negocio |
 | Spring Data JPA | Acceso a datos relacionales |

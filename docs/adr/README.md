@@ -17,6 +17,7 @@ Los ADRs documentan decisiones relevantes y difíciles de revertir. Son breves, 
 | [ADR-003](ADR-003-rest-api.md) | Accepted | API REST JSON documentada con OpenAPI |
 | [ADR-004](ADR-004-jwt-authentication.md) | Accepted | JWT para autenticación de la SPA |
 | [ADR-005](ADR-005-attachment-storage.md) | Accepted | Metadatos en PostgreSQL y binarios fuera de la base de datos |
+| [ADR-006](ADR-006-leaflet-openstreetmap.md) | Accepted | Leaflet y OpenStreetMap para mapas del MVP |
 
 ## Crear un ADR
 
