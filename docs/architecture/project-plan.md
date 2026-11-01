@@ -42,8 +42,9 @@ Enums iniciales: `Role`, `IncidentStatus` y `Priority`. Las relaciones de negoci
 | `/incidents/new`, `/my-incidents`, `/incidents/:id` | Ciudadanía | 3 |
 | `/operations/incidents`, `/operations/incidents/:id` | Operador | 4 |
 | `/work`, `/work/:id` | Técnico | 5 |
+| `/app` | Panel personal según rol | 9 |
 
-Las áreas de administración y analítica quedan fuera del MVP inicial.
+Las áreas de administración y analítica avanzada quedan fuera del MVP inicial.
 
 ## API REST del MVP
 
@@ -53,6 +54,7 @@ Las áreas de administración y analítica quedan fuera del MVP inicial.
 - Trabajo técnico: `GET /api/work/incidents` y comandos `start`, `notes`, `resolve`.
 - Auditoría: `GET /api/incidents/{id}/history`.
 - Catálogos: `GET /api/categories`, `GET /api/departments`, `GET /api/technicians`.
+- Panel: `GET /api/dashboard` con métricas agregadas y alcance por rol.
 
 Los cambios de estado serán comandos explícitos, validados en servicios del backend. Un `PUT` general nunca podrá cambiar arbitrariamente el estado.
 
@@ -66,7 +68,7 @@ Los cambios de estado serán comandos explícitos, validados en servicios del ba
 6. Historial auditable y timeline (completada).
 7. Adjuntos con límites de tipo y tamaño (completada).
 8. Mapa y geolocalización (completada).
-9. Dashboard básico (siguiente).
+9. Dashboard básico (completada).
 
 ## Fuera del MVP
 

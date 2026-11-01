@@ -1,4 +1,4 @@
-import { BriefcaseBusiness, ClipboardList, LogOut, Plus, Wrench } from "lucide-react";
+import { BriefcaseBusiness, ClipboardList, LayoutDashboard, LogOut, Plus, Wrench } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link, useNavigate } from "react-router";
 
@@ -21,6 +21,9 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-4 sm:px-6">
           <Brand to="/app" />
           <div className="flex items-center gap-2">
+            <Button asChild variant="outline" className="hidden sm:inline-flex">
+              <Link to="/app"><LayoutDashboard className="mr-2 size-4" />Panel</Link>
+            </Button>
             {user?.role === "CITIZEN" && (
               <>
                 <Button asChild variant="outline" className="hidden sm:inline-flex">

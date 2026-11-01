@@ -47,6 +47,7 @@ com.citylife/
 ├── incidents/         # Incidencias y ciclo de vida
 ├── categories/        # Catálogo de categorías
 ├── departments/       # Departamentos y técnicos
+├── dashboard/         # Métricas agregadas y panel por rol
 ├── audit/             # Historial visible y auditable
 ├── system/            # Estado técnico de la API
 └── shared/            # Configuración y elementos realmente compartidos
@@ -77,6 +78,8 @@ src/
 Los componentes de presentación no conocen PostgreSQL ni contienen reglas sensibles. TanStack Query gestiona caché, estados de carga e invalidaciones para autenticación, categorías e incidencias; React Hook Form y Zod validan los formularios antes de enviarlos.
 
 Los mapas se implementan como componentes compartidos con React Leaflet. OpenStreetMap suministra las teselas y la atribución se muestra en cada mapa. Las coordenadas forman parte del contrato de incidencia; la geolocalización del navegador solo se solicita por acción explícita y nunca es obligatoria para reportar.
+
+El panel consume `GET /api/dashboard`. El backend aplica el alcance del rol antes de agregar: ciudadanía ve solo sus incidencias, cada técnico ve las asignadas a su usuario y operación ve el total municipal. Los desgloses y los indicadores se calculan en consultas de agregación; la media de resolución se oculta hasta disponer de tres muestras para evitar conclusiones con datos escasos.
 
 ## Modelo de dominio inicial
 
@@ -115,6 +118,7 @@ El frontend solicita acciones concretas como validar, rechazar, asignar o resolv
 - secretos y credenciales mediante variables de entorno.
 - Flyway es la única fuente de cambios de esquema; Hibernate usa `ddl-auto: validate`.
 - Los adjuntos se sirven solo tras autorizar el recurso; se aceptan firmas reales JPEG, PNG y WebP, con 5 MB por archivo y 10 archivos por incidencia.
+- El dashboard es accesible a ciudadanía, operación y técnicos; los roles ADMIN y ANALYST quedan reservados para una fase posterior.
 
 ## Calidad y pruebas
 

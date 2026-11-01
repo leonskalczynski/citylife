@@ -17,7 +17,7 @@ export function HomePage() {
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
         <Brand />
         <span className="rounded-md border border-slate-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-widest text-slate-600">
-          Fase 8
+          Fase 9
         </span>
       </header>
 

@@ -214,6 +214,14 @@ Flyway crea cuatro departamentos de desarrollo. El usuario `operator@example.com
 - La bandeja de operación alterna entre tabla y mapa para la página de resultados actual.
 - Leaflet carga teselas de OpenStreetMap y mantiene visible su atribución. La geolocalización funciona en `localhost`; otros entornos requieren HTTPS.
 
+## Panel de métricas
+
+- `/app` muestra el panel según el rol autenticado.
+- Ciudadanía ve solo sus incidencias; cada técnico, las asignadas a su usuario; operación, el total del municipio.
+- El tiempo medio de resolución se calcula con las incidencias que tienen `resolvedAt`. Se muestra a partir de tres resoluciones; con menos, la interfaz indica cuántas muestras faltan.
+- Los desgloses por estado incluyen todos los estados del ciclo de vida y los de prioridad todas las prioridades, aunque el contador sea cero.
+- El endpoint es `GET /api/dashboard`; los roles ADMIN y ANALYST no tienen acceso en esta fase.
+
 ## Problemas habituales
 
 ### El puerto 5432 está ocupado

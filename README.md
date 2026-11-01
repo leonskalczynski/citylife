@@ -15,9 +15,9 @@ El MVP se desarrollará de forma incremental e incluirá:
 - transiciones de estado controladas por el backend;
 - historial auditable de cada cambio;
 - fotografías y otros archivos asociados;
-- filtros, paginación, mapa y métricas básicas.
+- filtros, paginación, mapa y panel de métricas por rol.
 
-Las Fases 1 a 8 están implementadas: infraestructura local, autenticación JWT, flujos de ciudadanía, operación y trabajo técnico, historial auditable, adjuntos seguros y mapas. La ciudadanía puede marcar una ubicación en el mapa o usar la geolocalización del navegador; los tres perfiles ven la posición y operación dispone de una vista cartográfica de los resultados filtrados.
+Las Fases 1 a 9 están implementadas: infraestructura local, autenticación JWT, flujos de ciudadanía, operación y trabajo técnico, historial auditable, adjuntos seguros, mapas y panel básico. El panel muestra totales, desgloses por estado, categoría y prioridad, tiempo medio de resolución cuando hay muestras suficientes y los indicadores operativos adecuados a cada rol; la ciudadanía ve su propia actividad, operación ve la operación global y cada técnico ve su carga asignada.
 
 ## Tecnologías y propósito
 
