@@ -1,4 +1,4 @@
-import { ClipboardList, Plus, ShieldCheck, UserRound } from "lucide-react";
+import { BriefcaseBusiness, ClipboardList, Plus, ShieldCheck, UserRound } from "lucide-react";
 import { Link } from "react-router";
 
 import { AppShell } from "@/components/AppShell";
@@ -29,6 +29,12 @@ export function DashboardPage() {
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Button asChild size="lg"><Link to="/incidents/new"><Plus className="mr-2 size-4" />Reportar incidencia</Link></Button>
             <Button asChild size="lg" variant="outline"><Link to="/my-incidents"><ClipboardList className="mr-2 size-4" />Ver mis incidencias</Link></Button>
+          </div>
+        )}
+
+        {user?.role === "OPERATOR" && (
+          <div className="mt-8">
+            <Button asChild size="lg"><Link to="/operations/incidents"><BriefcaseBusiness className="mr-2 size-4" />Abrir bandeja de operación</Link></Button>
           </div>
         )}
 

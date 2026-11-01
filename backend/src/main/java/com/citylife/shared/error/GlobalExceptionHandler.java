@@ -66,6 +66,12 @@ public class GlobalExceptionHandler {
                 .body(ApiError.of(400, exception.getCode(), exception.getMessage()));
     }
 
+    @ExceptionHandler(InvalidIncidentTransitionException.class)
+    ResponseEntity<ApiError> handleInvalidTransition(InvalidIncidentTransitionException exception) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ApiError.of(409, "INVALID_INCIDENT_TRANSITION", exception.getMessage()));
+    }
+
     @ExceptionHandler(AccessDeniedException.class)
     ResponseEntity<ApiError> handleAccessDenied() {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)

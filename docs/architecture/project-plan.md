@@ -61,8 +61,8 @@ Los cambios de estado serán comandos explícitos, validados en servicios del ba
 1. Infraestructura local y comunicación base (completada).
 2. Autenticación JWT, roles y usuario actual (completada).
 3. Flujo ciudadano mínimo (completada).
-4. Operación: listado, filtros, validación, rechazo y asignación (siguiente).
-5. Trabajo técnico y resolución.
+4. Operación: listado, filtros, validación, rechazo y asignación (completada).
+5. Trabajo técnico y resolución (siguiente).
 6. Historial auditable y timeline.
 7. Adjuntos con límites de tipo y tamaño.
 8. Mapa y geolocalización.

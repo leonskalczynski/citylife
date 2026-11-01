@@ -85,7 +85,7 @@ Los componentes de presentación no conocen PostgreSQL ni contienen reglas sensi
 | `StatusChange` | Transición auditable con actor, fecha y motivo |
 | `Attachment` | Metadatos de fotografías y archivos |
 
-En la Fase 3 están materializados `User`, `Category` e `Incident`. Una incidencia ciudadana siempre se crea en estado `REPORTED` y prioridad `NORMAL`; esos valores no forman parte del DTO de creación y por tanto no pueden ser elegidos por el cliente.
+En la Fase 4 están materializados `User`, `Category`, `Department` e `Incident`. Una incidencia ciudadana siempre se crea en estado `REPORTED` y prioridad `NORMAL`; esos valores no forman parte del DTO de creación. La operación usa comandos explícitos para validar, rechazar, priorizar y asignar, sin exponer una actualización general del estado.
 
 La asignación actual puede mantenerse en `Incident.assignedTo` durante el MVP. Una entidad `Assignment` separada se añadirá solo si aparece información o comportamiento propio que no pueda representarse mediante la incidencia y su historial.
 

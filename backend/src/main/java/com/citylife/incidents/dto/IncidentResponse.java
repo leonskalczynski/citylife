@@ -4,6 +4,8 @@ import com.citylife.categories.dto.CategoryResponse;
 import com.citylife.incidents.model.Incident;
 import com.citylife.incidents.model.IncidentStatus;
 import com.citylife.incidents.model.Priority;
+import com.citylife.departments.dto.DepartmentResponse;
+import com.citylife.users.dto.UserSummaryResponse;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -19,6 +21,10 @@ public record IncidentResponse(
         Double longitude,
         String address,
         String district,
+        UserSummaryResponse createdBy,
+        DepartmentResponse department,
+        UserSummaryResponse assignedTo,
+        String rejectionReason,
         Instant createdAt,
         Instant updatedAt
 ) {
@@ -34,6 +40,10 @@ public record IncidentResponse(
                 incident.getLongitude(),
                 incident.getAddress(),
                 incident.getDistrict(),
+                UserSummaryResponse.from(incident.getCreatedBy()),
+                incident.getDepartment() == null ? null : DepartmentResponse.from(incident.getDepartment()),
+                incident.getAssignedTo() == null ? null : UserSummaryResponse.from(incident.getAssignedTo()),
+                incident.getRejectionReason(),
                 incident.getCreatedAt(),
                 incident.getUpdatedAt()
         );

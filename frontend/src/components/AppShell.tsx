@@ -1,4 +1,4 @@
-import { ClipboardList, LogOut, Plus } from "lucide-react";
+import { BriefcaseBusiness, ClipboardList, LogOut, Plus } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link, useNavigate } from "react-router";
 
@@ -30,6 +30,11 @@ export function AppShell({ children }: { children: ReactNode }) {
                   <Link to="/incidents/new"><Plus className="mr-2 size-4" />Reportar</Link>
                 </Button>
               </>
+            )}
+            {user?.role === "OPERATOR" && (
+              <Button asChild variant="outline">
+                <Link to="/operations/incidents"><BriefcaseBusiness className="mr-2 size-4" />Incidencias</Link>
+              </Button>
             )}
             <Button variant="outline" onClick={handleLogout} aria-label="Cerrar sesión">
               <LogOut className="size-4 sm:mr-2" /><span className="hidden sm:inline">Salir</span>

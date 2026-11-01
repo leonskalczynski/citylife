@@ -17,7 +17,7 @@ El MVP se desarrollará de forma incremental e incluirá:
 - fotografías y otros archivos asociados;
 - filtros, paginación, mapa y métricas básicas.
 
-Las Fases 1, 2 y 3 están implementadas: infraestructura local, autenticación JWT y el flujo ciudadano para reportar incidencias, consultar las propias y ver su estado. Las incidencias nacen como `REPORTED`, con prioridad `NORMAL`, y solo su creador puede consultarlas desde el área ciudadana.
+Las Fases 1 a 4 están implementadas: infraestructura local, autenticación JWT, flujo ciudadano y operación municipal. Los operadores disponen de una bandeja paginada con filtros y pueden validar, rechazar con motivo, cambiar prioridad y asignar departamento y técnico mediante comandos protegidos del backend.
 
 ## Tecnologías y propósito
 
@@ -99,6 +99,14 @@ El perfil `local` también crea categorías urbanas y tres incidencias de ejempl
 | `POST /api/incidents` | Reportar una incidencia como ciudadano |
 | `GET /api/incidents/my` | Listar las incidencias propias |
 | `GET /api/incidents/{id}` | Consultar una incidencia propia |
+| `GET /api/operations/incidents` | Buscar y filtrar incidencias como operador |
+| `GET /api/operations/incidents/{id}` | Consultar el detalle operativo |
+| `POST /api/operations/incidents/{id}/validate` | Validar una incidencia reportada |
+| `POST /api/operations/incidents/{id}/reject` | Rechazar indicando un motivo |
+| `POST /api/operations/incidents/{id}/priority` | Establecer prioridad |
+| `POST /api/operations/incidents/{id}/assign` | Asignar departamento y técnico opcional |
+| `GET /api/departments` | Consultar departamentos activos |
+| `GET /api/technicians` | Consultar técnicos disponibles |
 
 ## Documentación
 

@@ -7,6 +7,19 @@ export type Category = {
   name: string;
 };
 
+export type Department = {
+  id: string;
+  code: string;
+  name: string;
+};
+
+export type UserSummary = {
+  id: string;
+  displayName: string;
+  email: string;
+  role: string;
+};
+
 export type Incident = {
   id: string;
   title: string;
@@ -18,8 +31,31 @@ export type Incident = {
   longitude?: number;
   address?: string;
   district?: string;
+  createdBy: UserSummary;
+  department?: Department;
+  assignedTo?: UserSummary;
+  rejectionReason?: string;
   createdAt: string;
   updatedAt: string;
+};
+
+export type PageResponse<T> = {
+  content: T[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+};
+
+export type OperationFilters = {
+  search?: string;
+  status?: IncidentStatus;
+  priority?: Priority;
+  categoryId?: string;
+  departmentId?: string;
+  district?: string;
+  page: number;
+  size: number;
 };
 
 export type CreateIncidentInput = {

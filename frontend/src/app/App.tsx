@@ -8,6 +8,8 @@ import { IncidentDetailPage } from "@/pages/IncidentDetailPage";
 import { MyIncidentsPage } from "@/pages/MyIncidentsPage";
 import { NewIncidentPage } from "@/pages/NewIncidentPage";
 import { RegisterPage } from "@/pages/RegisterPage";
+import { OperationIncidentDetailPage } from "@/pages/OperationIncidentDetailPage";
+import { OperationsIncidentsPage } from "@/pages/OperationsIncidentsPage";
 
 export function App() {
   return (
@@ -22,6 +24,10 @@ export function App() {
         <Route path="/incidents/new" element={<NewIncidentPage />} />
         <Route path="/my-incidents" element={<MyIncidentsPage />} />
         <Route path="/incidents/:incidentId" element={<IncidentDetailPage />} />
+      </Route>
+      <Route element={<ProtectedRoute roles={["OPERATOR"]} />}>
+        <Route path="/operations/incidents" element={<OperationsIncidentsPage />} />
+        <Route path="/operations/incidents/:incidentId" element={<OperationIncidentDetailPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

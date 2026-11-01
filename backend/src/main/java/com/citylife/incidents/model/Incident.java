@@ -1,6 +1,8 @@
 package com.citylife.incidents.model;
 
 import com.citylife.categories.model.Category;
+import com.citylife.departments.model.Department;
+import com.citylife.shared.error.InvalidIncidentTransitionException;
 import com.citylife.users.model.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -56,6 +58,17 @@ public class Incident {
     @JoinColumn(name = "created_by_id", nullable = false)
     private User createdBy;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "department_id")
+    private Department department;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assigned_to_id")
+    private User assignedTo;
+
+    @Column(name = "rejection_reason", length = 500)
+    private String rejectionReason;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -107,6 +120,46 @@ public class Incident {
         return value.trim();
     }
 
+    public void validateIncident() {
+        requireStatus(IncidentStatus.REPORTED, IncidentStatus.VALIDATED);
+        status = IncidentStatus.VALIDATED;
+        rejectionReason = null;
+    }
+
+    public void reject(String reason) {
+        requireStatus(IncidentStatus.REPORTED, IncidentStatus.REJECTED);
+        status = IncidentStatus.REJECTED;
+        rejectionReason = reason.trim();
+    }
+
+    public void changePriority(Priority newPriority) {
+        if (status == IncidentStatus.REJECTED || status == IncidentStatus.CLOSED) {
+            throw new InvalidIncidentTransitionException(
+                    "No se puede cambiar la prioridad de una incidencia en estado " + status
+            );
+        }
+        priority = newPriority;
+    }
+
+    public void assign(Department newDepartment, User technician) {
+        if (status != IncidentStatus.VALIDATED && status != IncidentStatus.ASSIGNED) {
+            throw new InvalidIncidentTransitionException(
+                    "No se puede asignar una incidencia en estado " + status
+            );
+        }
+        department = newDepartment;
+        assignedTo = technician;
+        status = IncidentStatus.ASSIGNED;
+    }
+
+    private void requireStatus(IncidentStatus expected, IncidentStatus target) {
+        if (status != expected) {
+            throw new InvalidIncidentTransitionException(
+                    "No se puede cambiar una incidencia de " + status + " a " + target
+            );
+        }
+    }
+
     public UUID getId() { return id; }
     public String getTitle() { return title; }
     public String getDescription() { return description; }
@@ -118,6 +171,9 @@ public class Incident {
     public String getAddress() { return address; }
     public String getDistrict() { return district; }
     public User getCreatedBy() { return createdBy; }
+    public Department getDepartment() { return department; }
+    public User getAssignedTo() { return assignedTo; }
+    public String getRejectionReason() { return rejectionReason; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
 }
