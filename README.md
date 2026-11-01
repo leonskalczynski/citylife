@@ -17,7 +17,7 @@ El MVP se desarrollará de forma incremental e incluirá:
 - fotografías y otros archivos asociados;
 - filtros, paginación, mapa y métricas básicas.
 
-La Fase 1, actualmente implementada, contiene la infraestructura local, la comunicación frontend/backend, PostgreSQL, Flyway, OpenAPI y una pantalla inicial. El dominio y la autenticación se incorporarán en las siguientes fases.
+Las Fases 1 y 2 están implementadas: infraestructura local, comunicación frontend/backend, PostgreSQL, Flyway, OpenAPI, registro ciudadano, login JWT, roles, usuario actual y cierre de sesión. El dominio de incidencias se incorporará en la siguiente fase.
 
 ## Tecnologías y propósito
 
@@ -29,7 +29,7 @@ La Fase 1, actualmente implementada, contiene la infraestructura local, la comun
 | React Router | Navegación de la SPA |
 | Spring Boot + Java 21 | API REST y reglas de negocio |
 | Spring Data JPA | Acceso a datos relacionales |
-| Spring Security | Autenticación y autorización en la Fase 2 |
+| Spring Security | Autenticación y autorización por roles |
 | PostgreSQL | Persistencia transaccional y auditable |
 | Flyway | Migraciones versionadas de la base de datos |
 | OpenAPI | Documentación y exploración de la API |
@@ -57,10 +57,15 @@ Citylife es un monolito modular: mantiene una única aplicación backend despleg
 Requisitos: Node.js 20+, Java 21, Maven 3.8+ y Docker Compose.
 
 ```bash
+cp .env.example .env
+set -a
+source .env
+set +a
+
 docker compose up -d postgres
 
 cd backend
-mvn spring-boot:run
+mvn spring-boot:run -Dspring-boot.run.profiles=local
 
 # En otra terminal
 cd frontend
@@ -69,6 +74,17 @@ npm run dev
 ```
 
 Abre `http://localhost:5173`. Consulta la guía de desarrollo para configurar variables, ejecutar pruebas y resolver problemas habituales.
+
+Usuarios demo del perfil `local`:
+
+| Rol | Email |
+| --- | --- |
+| Ciudadanía | `citizen@example.com` |
+| Operación | `operator@example.com` |
+| Técnico | `technician@example.com` |
+| Administración | `admin@example.com` |
+
+Todos usan la contraseña configurada en `DEMO_USER_PASSWORD`; `.env.example` contiene únicamente un valor de desarrollo que debe cambiarse fuera del entorno local.
 
 ## Documentación
 

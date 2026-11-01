@@ -15,7 +15,7 @@ Los ADRs documentan decisiones relevantes y difíciles de revertir. Son breves, 
 | [ADR-001](ADR-001-use-postgresql.md) | Accepted | PostgreSQL y Flyway |
 | [ADR-002](ADR-002-use-react.md) | Accepted | React y TypeScript para la SPA |
 | [ADR-003](ADR-003-rest-api.md) | Accepted | API REST JSON documentada con OpenAPI |
-| [ADR-004](ADR-004-jwt-authentication.md) | Proposed | JWT para autenticación de la SPA |
+| [ADR-004](ADR-004-jwt-authentication.md) | Accepted | JWT para autenticación de la SPA |
 
 ## Crear un ADR
 

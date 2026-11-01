@@ -101,7 +101,8 @@ El frontend solicita acciones concretas como validar, rechazar, asignar o resolv
 - API REST JSON bajo `/api`.
 - OpenAPI disponible durante desarrollo.
 - DTOs y validación de entradas en los límites HTTP.
-- JWT de vida corta y BCrypt previstos para la Fase 2.
+- JWT HMAC de vida corta y BCrypt para autenticación.
+- El frontend conserva el access token en `sessionStorage`; no existen refresh tokens en el MVP actual.
 - autorización por rol y por recurso en Spring Security.
 - CORS limitado al origen configurado.
 - secretos y credenciales mediante variables de entorno.

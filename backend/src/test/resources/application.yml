@@ -7,11 +7,14 @@ spring:
   jpa:
     open-in-view: false
     hibernate:
-      ddl-auto: validate
+      ddl-auto: create-drop
   flyway:
     enabled: false
 
 app:
   cors:
-    allowed-origin: http://localhost:5173
+    allowed-origins: http://localhost:5173,http://127.0.0.1:5173
+  jwt:
+    secret-base64: dGVzdC1zZWNyZXQtZm9yLWNpdHlsaWZlLW11c3QtYmUtMzItYnl0ZXMtbG9uZw==
+    ttl: 15m
 

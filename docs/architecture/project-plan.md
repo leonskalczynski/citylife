@@ -58,9 +58,9 @@ Los cambios de estado serán comandos explícitos, validados en servicios del ba
 
 ## Orden de implementación
 
-1. Infraestructura local y comunicación base (actual).
-2. Autenticación JWT, roles y usuario actual.
-3. Flujo ciudadano mínimo.
+1. Infraestructura local y comunicación base (completada).
+2. Autenticación JWT, roles y usuario actual (completada).
+3. Flujo ciudadano mínimo (siguiente).
 4. Operación: listado, filtros, validación, rechazo y asignación.
 5. Trabajo técnico y resolución.
 6. Historial auditable y timeline.

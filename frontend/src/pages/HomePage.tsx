@@ -1,4 +1,5 @@
 import { ArrowRight, Building2, MapPinned, Wrench } from "lucide-react";
+import { Link } from "react-router";
 
 import { Button } from "@/components/ui/button";
 import { ApiStatus } from "@/features/system/components/ApiStatus";
@@ -18,7 +19,7 @@ export function HomePage() {
           <span className="text-xl">Citylife</span>
         </a>
         <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-widest text-slate-600">
-          Fase 1
+          Fase 2
         </span>
       </header>
 
@@ -34,8 +35,10 @@ export function HomePage() {
             Citylife conecta ciudadanía, operadores y equipos técnicos para gestionar incidencias urbanas de forma clara, trazable y eficiente.
           </p>
           <div className="mt-9 flex flex-wrap items-center gap-4">
-            <Button size="lg" disabled>
-              Próximamente: acceder <ArrowRight className="ml-2 size-4" />
+            <Button size="lg" asChild>
+              <Link to="/login">
+                Acceder a Citylife <ArrowRight className="ml-2 size-4" />
+              </Link>
             </Button>
             <div className="text-sm"><ApiStatus /></div>
           </div>

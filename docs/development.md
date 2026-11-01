@@ -23,11 +23,14 @@ Desde la raíz del repositorio:
 
 ```bash
 cp .env.example .env
+set -a
+source .env
+set +a
 cd frontend
 npm install
 ```
 
-El archivo `.env` raíz configura el contenedor PostgreSQL y no debe añadirse a Git. `frontend/.env.example` documenta las variables específicas de Vite.
+El archivo `.env` raíz configura PostgreSQL y las variables del backend; no debe añadirse a Git. El comando `source` exporta esas variables a la terminal actual. `frontend/.env.example` documenta las variables específicas de Vite.
 
 ## Ejecutar Citylife
 
@@ -44,7 +47,7 @@ En otra terminal:
 
 ```bash
 cd backend
-mvn spring-boot:run
+mvn spring-boot:run -Dspring-boot.run.profiles=local
 ```
 
 El backend escucha en `http://localhost:8080`. Al arrancar, Flyway valida y aplica las migraciones pendientes.
@@ -88,7 +91,10 @@ Abre `http://localhost:5173`. Vite redirige las peticiones `/api` a `http://loca
 | `DB_URL` | `jdbc:postgresql://localhost:5432/citylife` |
 | `DB_USERNAME` | `citylife` |
 | `DB_PASSWORD` | `citylife_local_password` |
-| `CORS_ALLOWED_ORIGIN` | `http://localhost:5173` |
+| `CORS_ALLOWED_ORIGINS` | Lista separada por comas; `localhost` y `127.0.0.1` en local |
+| `JWT_SECRET_BASE64` | Obligatoria; secreto HMAC codificado en Base64 |
+| `JWT_TTL` | `15m` en `.env.example` |
+| `DEMO_USER_PASSWORD` | Contraseña común para usuarios demo del perfil `local` |
 
 ### Frontend
 
@@ -96,7 +102,7 @@ Abre `http://localhost:5173`. Vite redirige las peticiones `/api` a `http://loca
 | --- | --- |
 | `VITE_API_URL` | Vacío; usa el proxy de Vite |
 
-Si frontend y backend se sirven desde orígenes distintos sin el proxy, configura `VITE_API_URL` con la URL completa de la API y permite el origen del frontend mediante `CORS_ALLOWED_ORIGIN`.
+Si frontend y backend se sirven desde orígenes distintos sin el proxy, configura `VITE_API_URL` con la URL completa de la API y permite el origen del frontend mediante `CORS_ALLOWED_ORIGINS`.
 
 ## Pruebas y build
 
@@ -134,7 +140,24 @@ No edites una migración que ya se haya compartido o aplicado. Crea una migraci�
 
 ## Datos de desarrollo
 
-La Fase 1 todavía no incluye autenticación ni datos demo. Los usuarios reproducibles se incorporarán en la Fase 2 y sus credenciales exclusivamente locales se documentarán aquí y en el README.
+El perfil `local` crea estos usuarios si todavía no existen:
+
+| Rol | Email |
+| --- | --- |
+| `CITIZEN` | `citizen@example.com` |
+| `OPERATOR` | `operator@example.com` |
+| `TECHNICIAN` | `technician@example.com` |
+| `ADMIN` | `admin@example.com` |
+
+La contraseña es el valor de `DEMO_USER_PASSWORD`. El inicializador no se ejecuta sin el perfil `local` y nunca reemplaza cuentas existentes.
+
+## Autenticación local
+
+- `POST /api/auth/register` crea únicamente cuentas `CITIZEN`.
+- `POST /api/auth/login` devuelve un access token JWT de corta duración.
+- `GET /api/users/me` devuelve la identidad autenticada.
+- El frontend conserva el token en `sessionStorage` y lo elimina al cerrar sesión.
+- El backend verifica firma, expiración y rol en cada petición protegida.
 
 ## Problemas habituales
 
@@ -148,7 +171,7 @@ POSTGRES_PORT=5433
 
 ```bash
 cd backend
-DB_URL=jdbc:postgresql://localhost:5433/citylife mvn spring-boot:run
+DB_URL=jdbc:postgresql://localhost:5433/citylife mvn spring-boot:run -Dspring-boot.run.profiles=local
 ```
 
 ### El frontend muestra “API no disponible”

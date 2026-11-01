@@ -42,8 +42,10 @@ En un entorno no local no deben usarse los valores predeterminados de desarrollo
 | `DB_URL` | URL JDBC de PostgreSQL del entorno |
 | `DB_USERNAME` | Usuario con privilegios mínimos necesarios |
 | `DB_PASSWORD` | Secreto gestionado fuera del repositorio |
-| `CORS_ALLOWED_ORIGIN` | Origen HTTPS exacto del frontend |
+| `CORS_ALLOWED_ORIGINS` | Orígenes HTTPS exactos del frontend, separados por comas |
 | `VITE_API_URL` | URL pública de la API usada durante la build |
+| `JWT_SECRET_BASE64` | Secreto Base64 de al menos 32 bytes, único por entorno |
+| `JWT_TTL` | Duración del access token, por ejemplo `15m` |
 
 Las futuras claves JWT u otros secretos deberán suministrarse mediante el gestor de secretos de la plataforma, nunca mediante archivos versionados.
 
