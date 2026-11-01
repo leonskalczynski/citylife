@@ -17,7 +17,7 @@ El MVP se desarrollará de forma incremental e incluirá:
 - fotografías y otros archivos asociados;
 - filtros, paginación, mapa y métricas básicas.
 
-Las Fases 1 y 2 están implementadas: infraestructura local, comunicación frontend/backend, PostgreSQL, Flyway, OpenAPI, registro ciudadano, login JWT, roles, usuario actual y cierre de sesión. El dominio de incidencias se incorporará en la siguiente fase.
+Las Fases 1, 2 y 3 están implementadas: infraestructura local, autenticación JWT y el flujo ciudadano para reportar incidencias, consultar las propias y ver su estado. Las incidencias nacen como `REPORTED`, con prioridad `NORMAL`, y solo su creador puede consultarlas desde el área ciudadana.
 
 ## Tecnologías y propósito
 
@@ -85,6 +85,20 @@ Usuarios demo del perfil `local`:
 | Administración | `admin@example.com` |
 
 Todos usan la contraseña configurada en `DEMO_USER_PASSWORD`; `.env.example` contiene únicamente un valor de desarrollo que debe cambiarse fuera del entorno local.
+
+El perfil `local` también crea categorías urbanas y tres incidencias de ejemplo para `citizen@example.com` cuando ese usuario todavía no tiene ninguna.
+
+## API implementada
+
+| Método y ruta | Uso |
+| --- | --- |
+| `POST /api/auth/register` | Registrar una cuenta ciudadana |
+| `POST /api/auth/login` | Iniciar sesión y obtener un JWT |
+| `GET /api/users/me` | Consultar el usuario autenticado |
+| `GET /api/categories` | Listar categorías activas |
+| `POST /api/incidents` | Reportar una incidencia como ciudadano |
+| `GET /api/incidents/my` | Listar las incidencias propias |
+| `GET /api/incidents/{id}` | Consultar una incidencia propia |
 
 ## Documentación
 

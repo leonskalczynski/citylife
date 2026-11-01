@@ -1,5 +1,7 @@
 package com.citylife.auth;
 
+import com.citylife.categories.repository.CategoryRepository;
+import com.citylife.incidents.repository.IncidentRepository;
 import com.citylife.users.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,8 +27,16 @@ class AuthFlowIntegrationTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private IncidentRepository incidentRepository;
+
+    @Autowired
+    private CategoryRepository categoryRepository;
+
     @BeforeEach
     void cleanUsers() {
+        incidentRepository.deleteAll();
+        categoryRepository.deleteAll();
         userRepository.deleteAll();
     }
 

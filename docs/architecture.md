@@ -72,7 +72,7 @@ src/
 └── test/              # Configuración común de pruebas
 ```
 
-Los componentes de presentación no conocen PostgreSQL ni contienen reglas sensibles. La futura capa de consultas usará TanStack Query para caché, estados de carga e invalidaciones cuando existan operaciones reales del dominio.
+Los componentes de presentación no conocen PostgreSQL ni contienen reglas sensibles. TanStack Query gestiona caché, estados de carga e invalidaciones para autenticación, categorías e incidencias; React Hook Form y Zod validan los formularios antes de enviarlos.
 
 ## Modelo de dominio inicial
 
@@ -84,6 +84,8 @@ Los componentes de presentación no conocen PostgreSQL ni contienen reglas sensi
 | `Department` | Unidad responsable |
 | `StatusChange` | Transición auditable con actor, fecha y motivo |
 | `Attachment` | Metadatos de fotografías y archivos |
+
+En la Fase 3 están materializados `User`, `Category` e `Incident`. Una incidencia ciudadana siempre se crea en estado `REPORTED` y prioridad `NORMAL`; esos valores no forman parte del DTO de creación y por tanto no pueden ser elegidos por el cliente.
 
 La asignación actual puede mantenerse en `Incident.assignedTo` durante el MVP. Una entidad `Assignment` separada se añadirá solo si aparece información o comportamiento propio que no pueda representarse mediante la incidencia y su historial.
 

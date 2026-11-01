@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -57,6 +58,18 @@ public class GlobalExceptionHandler {
     ResponseEntity<ApiError> handleNotFound(ResourceNotFoundException exception) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(ApiError.of(404, exception.getCode(), exception.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidRequestException.class)
+    ResponseEntity<ApiError> handleInvalidRequest(InvalidRequestException exception) {
+        return ResponseEntity.badRequest()
+                .body(ApiError.of(400, exception.getCode(), exception.getMessage()));
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    ResponseEntity<ApiError> handleAccessDenied() {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ApiError.of(403, "FORBIDDEN", "No tienes permiso para realizar esta acción"));
     }
 
     @ExceptionHandler(Exception.class)

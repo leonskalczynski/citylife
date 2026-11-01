@@ -151,6 +151,8 @@ El perfil `local` crea estos usuarios si todavía no existen:
 
 La contraseña es el valor de `DEMO_USER_PASSWORD`. El inicializador no se ejecuta sin el perfil `local` y nunca reemplaza cuentas existentes.
 
+También se crean siete categorías y, si `citizen@example.com` no tiene avisos, tres incidencias de ejemplo. Los inicializadores son idempotentes y solo se ejecutan con el perfil `local`.
+
 ## Autenticación local
 
 - `POST /api/auth/register` crea únicamente cuentas `CITIZEN`.
@@ -158,6 +160,14 @@ La contraseña es el valor de `DEMO_USER_PASSWORD`. El inicializador no se ejecu
 - `GET /api/users/me` devuelve la identidad autenticada.
 - El frontend conserva el token en `sessionStorage` y lo elimina al cerrar sesión.
 - El backend verifica firma, expiración y rol en cada petición protegida.
+
+## Flujo ciudadano
+
+- `/incidents/new` permite crear una incidencia con categoría, descripción y ubicación opcional.
+- `/my-incidents` lista exclusivamente las incidencias del usuario autenticado.
+- `/incidents/:id` muestra el detalle y el estado actual.
+- `POST /api/incidents` solo acepta usuarios `CITIZEN` y siempre establece `REPORTED` y `NORMAL` en el backend.
+- El acceso a una incidencia ajena responde `404` para no revelar su existencia.
 
 ## Problemas habituales
 

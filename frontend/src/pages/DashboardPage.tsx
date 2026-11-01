@@ -1,6 +1,7 @@
-import { LogOut, ShieldCheck, UserRound } from "lucide-react";
-import { useNavigate } from "react-router";
+import { ClipboardList, Plus, ShieldCheck, UserRound } from "lucide-react";
+import { Link } from "react-router";
 
+import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useAuth } from "@/features/auth/components/AuthProvider";
@@ -15,32 +16,21 @@ const roleLabels: Record<Role, string> = {
 };
 
 export function DashboardPage() {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    logout();
-    navigate("/", { replace: true });
-  };
+  const { user } = useAuth();
 
   return (
-    <main className="min-h-screen bg-[#f5f7f2] text-slate-950">
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
-          <div className="flex items-center gap-3 font-bold">
-            <span className="grid size-10 place-items-center rounded-xl bg-teal-700 text-white">C</span>
-            <span className="text-xl">Citylife</span>
-          </div>
-          <Button variant="outline" onClick={handleLogout}>
-            <LogOut className="mr-2 size-4" /> Cerrar sesión
-          </Button>
-        </div>
-      </header>
-
+    <AppShell>
       <section className="mx-auto max-w-6xl px-6 py-14">
         <p className="text-sm font-bold uppercase tracking-[0.2em] text-teal-700">Área personal</p>
         <h1 className="mt-3 text-4xl font-semibold tracking-tight">Hola, {user?.displayName}</h1>
-        <p className="mt-3 text-slate-600">Tu sesión está activa. Las incidencias llegarán en la siguiente fase.</p>
+        <p className="mt-3 text-slate-600">Gestiona tu actividad en Citylife desde un único lugar.</p>
+
+        {user?.role === "CITIZEN" && (
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Button asChild size="lg"><Link to="/incidents/new"><Plus className="mr-2 size-4" />Reportar incidencia</Link></Button>
+            <Button asChild size="lg" variant="outline"><Link to="/my-incidents"><ClipboardList className="mr-2 size-4" />Ver mis incidencias</Link></Button>
+          </div>
+        )}
 
         <div className="mt-10 grid gap-5 md:grid-cols-2">
           <Card>
@@ -64,7 +54,7 @@ export function DashboardPage() {
           </Card>
         </div>
       </section>
-    </main>
+    </AppShell>
   );
 }
 
