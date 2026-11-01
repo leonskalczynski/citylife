@@ -40,7 +40,7 @@ export function LoginPage() {
     <AuthLayout>
       <Card>
         <CardHeader>
-          <p className="text-sm font-semibold text-teal-700">Bienvenido de nuevo</p>
+          <p className="text-sm font-semibold text-slate-500">Bienvenido de nuevo</p>
           <h1 className="text-3xl font-semibold tracking-tight">Inicia sesión</h1>
           <p className="text-sm leading-6 text-slate-600">Usa tu cuenta de Citylife para continuar.</p>
         </CardHeader>
@@ -56,13 +56,13 @@ export function LoginPage() {
               <Input id="password" type="password" autoComplete="current-password" {...form.register("password")} />
               {form.formState.errors.password && <p className="text-sm text-red-700">{form.formState.errors.password.message}</p>}
             </div>
-            {errorMessage && <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-800">{errorMessage}</p>}
+            {errorMessage && <p role="alert" className="rounded-md bg-red-50 p-3 text-sm text-red-800">{errorMessage}</p>}
             <Button className="w-full" size="lg" type="submit" disabled={mutation.isPending}>
               {mutation.isPending ? "Accediendo…" : "Acceder"}
             </Button>
           </form>
           <p className="mt-6 text-center text-sm text-slate-600">
-            ¿Aún no tienes cuenta? <Link className="font-semibold text-teal-700 hover:underline" to="/register">Regístrate</Link>
+            ¿Aún no tienes cuenta? <Link className="font-semibold text-[var(--accent-ink)] hover:underline" to="/register">Regístrate</Link>
           </p>
         </CardContent>
       </Card>

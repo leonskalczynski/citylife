@@ -36,8 +36,8 @@ export function ApiStatus() {
   }
 
   return (
-    <span className="inline-flex items-center gap-2 text-emerald-700">
-      <span className="size-2 rounded-full bg-emerald-500" aria-hidden="true" />
+    <span className="inline-flex items-center gap-2 text-[var(--accent-ink)]">
+      <span className="size-2 rounded-full bg-[var(--accent)]" aria-hidden="true" />
       {state.data.application} API conectada
     </span>
   );

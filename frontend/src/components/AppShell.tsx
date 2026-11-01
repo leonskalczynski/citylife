@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { Link, useNavigate } from "react-router";
 
 import { Button } from "@/components/ui/button";
+import { Brand } from "@/components/Brand";
 import { useAuth } from "@/features/auth/components/AuthProvider";
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -15,13 +16,10 @@ export function AppShell({ children }: { children: ReactNode }) {
   };
 
   return (
-    <main className="min-h-screen bg-[#f5f7f2] text-slate-950">
+    <main className="min-h-screen bg-[var(--canvas)] text-slate-950">
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-4 sm:px-6">
-          <Link className="flex items-center gap-3 font-bold" to="/app">
-            <span className="grid size-10 place-items-center rounded-xl bg-teal-700 text-white">C</span>
-            <span className="text-xl">Citylife</span>
-          </Link>
+          <Brand to="/app" />
           <div className="flex items-center gap-2">
             {user?.role === "CITIZEN" && (
               <>

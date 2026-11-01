@@ -21,7 +21,7 @@ export function DashboardPage() {
   return (
     <AppShell>
       <section className="mx-auto max-w-6xl px-6 py-14">
-        <p className="text-sm font-bold uppercase tracking-[0.2em] text-teal-700">Área personal</p>
+        <p className="text-sm font-bold uppercase tracking-[0.2em] text-slate-500">Área personal</p>
         <h1 className="mt-3 text-4xl font-semibold tracking-tight">Hola, {user?.displayName}</h1>
         <p className="mt-3 text-slate-600">Gestiona tu actividad en Citylife desde un único lugar.</p>
 
@@ -35,7 +35,7 @@ export function DashboardPage() {
         <div className="mt-10 grid gap-5 md:grid-cols-2">
           <Card>
             <CardHeader className="flex-row items-center gap-3 space-y-0">
-              <UserRound className="size-5 text-teal-700" />
+              <UserRound className="size-5 text-slate-500" />
               <h2 className="text-lg font-semibold">Tu cuenta</h2>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
@@ -45,7 +45,7 @@ export function DashboardPage() {
           </Card>
           <Card className="bg-slate-950 text-white">
             <CardHeader className="flex-row items-center gap-3 space-y-0">
-              <ShieldCheck className="size-5 text-teal-300" />
+              <ShieldCheck className="size-5 text-[var(--accent)]" />
               <h2 className="text-lg font-semibold">Acceso protegido</h2>
             </CardHeader>
             <CardContent className="text-sm leading-6 text-slate-300">

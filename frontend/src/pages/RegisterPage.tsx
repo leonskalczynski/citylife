@@ -38,7 +38,7 @@ export function RegisterPage() {
     <AuthLayout>
       <Card>
         <CardHeader>
-          <p className="text-sm font-semibold text-teal-700">Cuenta ciudadana</p>
+          <p className="text-sm font-semibold text-slate-500">Cuenta ciudadana</p>
           <h1 className="text-3xl font-semibold tracking-tight">Crea tu cuenta</h1>
           <p className="text-sm leading-6 text-slate-600">Podrás reportar y seguir tus incidencias urbanas.</p>
         </CardHeader>
@@ -59,13 +59,13 @@ export function RegisterPage() {
               <Input id="password" type="password" autoComplete="new-password" {...form.register("password")} />
               {form.formState.errors.password && <p className="text-sm text-red-700">{form.formState.errors.password.message}</p>}
             </div>
-            {errorMessage && <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-800">{errorMessage}</p>}
+            {errorMessage && <p role="alert" className="rounded-md bg-red-50 p-3 text-sm text-red-800">{errorMessage}</p>}
             <Button className="w-full" size="lg" type="submit" disabled={mutation.isPending}>
               {mutation.isPending ? "Creando cuenta…" : "Crear cuenta"}
             </Button>
           </form>
           <p className="mt-6 text-center text-sm text-slate-600">
-            ¿Ya tienes cuenta? <Link className="font-semibold text-teal-700 hover:underline" to="/login">Inicia sesión</Link>
+            ¿Ya tienes cuenta? <Link className="font-semibold text-[var(--accent-ink)] hover:underline" to="/login">Inicia sesión</Link>
           </p>
         </CardContent>
       </Card>

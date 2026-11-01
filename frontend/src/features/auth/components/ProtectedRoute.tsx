@@ -8,7 +8,7 @@ export function ProtectedRoute({ roles }: { roles?: Role[] }) {
   const location = useLocation();
 
   if (isLoading) {
-    return <div className="grid min-h-screen place-items-center bg-[#f5f7f2] text-slate-600">Cargando sesión…</div>;
+    return <div className="grid min-h-screen place-items-center bg-[var(--canvas)] text-slate-600">Cargando sesión…</div>;
   }
 
   if (!token) {

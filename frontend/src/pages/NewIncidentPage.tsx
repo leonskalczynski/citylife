@@ -44,11 +44,11 @@ export function NewIncidentPage() {
   return (
     <AppShell>
       <section className="mx-auto max-w-3xl px-5 py-10 sm:px-6 sm:py-14">
-        <Link className="inline-flex items-center gap-2 text-sm font-semibold text-teal-800 hover:underline" to="/my-incidents">
+        <Link className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--accent-ink)] hover:underline" to="/my-incidents">
           <ArrowLeft className="size-4" /> Volver a mis incidencias
         </Link>
         <div className="mt-6">
-          <p className="text-sm font-bold uppercase tracking-[0.2em] text-teal-700">Nueva incidencia</p>
+          <p className="text-sm font-bold uppercase tracking-[0.2em] text-slate-500">Nueva incidencia</p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">Cuéntanos qué ocurre</h1>
           <p className="mt-3 text-slate-600">Describe el problema con claridad. Podrás seguir su estado desde tu área personal.</p>
         </div>
@@ -75,9 +75,9 @@ export function NewIncidentPage() {
                 </Select>
               </Field>
 
-              <div className="rounded-xl border border-slate-200 bg-slate-50 p-5">
+              <div className="rounded-md border border-slate-200 bg-slate-50 p-5">
                 <div className="mb-4 flex items-center gap-2">
-                  <MapPin className="size-5 text-teal-700" />
+                  <MapPin className="size-5 text-slate-500" />
                   <h3 className="font-semibold">Ubicación opcional</h3>
                 </div>
                 <div className="grid gap-5 sm:grid-cols-2">
@@ -97,8 +97,8 @@ export function NewIncidentPage() {
                 <p className="mt-3 text-xs text-slate-500">El selector visual de mapa se incorporará en una fase posterior.</p>
               </div>
 
-              {categories.isError && <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-800">No se han podido cargar las categorías.</p>}
-              {apiError && <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-800">{apiError}</p>}
+              {categories.isError && <p role="alert" className="rounded-md bg-red-50 p-3 text-sm text-red-800">No se han podido cargar las categorías.</p>}
+              {apiError && <p role="alert" className="rounded-md bg-red-50 p-3 text-sm text-red-800">{apiError}</p>}
 
               <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                 <Button type="button" variant="outline" onClick={() => navigate("/my-incidents")}>Cancelar</Button>

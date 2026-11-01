@@ -2,6 +2,7 @@ import { ArrowRight, Building2, MapPinned, Wrench } from "lucide-react";
 import { Link } from "react-router";
 
 import { Button } from "@/components/ui/button";
+import { Brand } from "@/components/Brand";
 import { ApiStatus } from "@/features/system/components/ApiStatus";
 
 const capabilities = [
@@ -12,20 +13,17 @@ const capabilities = [
 
 export function HomePage() {
   return (
-    <main className="min-h-screen bg-[#f5f7f2] text-slate-950">
+    <main className="min-h-screen bg-[var(--canvas)] text-slate-950">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
-        <a href="/" className="flex items-center gap-3 font-bold tracking-tight">
-          <span className="grid size-10 place-items-center rounded-xl bg-teal-700 text-white">C</span>
-          <span className="text-xl">Citylife</span>
-        </a>
-        <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-widest text-slate-600">
-          Fase 2
+        <Brand />
+        <span className="rounded-md border border-slate-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-widest text-slate-600">
+          Fase 3
         </span>
       </header>
 
       <section className="mx-auto grid max-w-6xl gap-14 px-6 pb-20 pt-14 lg:grid-cols-[1.15fr_0.85fr] lg:items-center lg:pt-24">
         <div>
-          <p className="mb-5 text-sm font-bold uppercase tracking-[0.22em] text-teal-700">
+          <p className="mb-5 text-sm font-bold uppercase tracking-[0.22em] text-slate-500">
             Gestión urbana conectada
           </p>
           <h1 className="max-w-3xl text-5xl font-semibold leading-[1.05] tracking-[-0.045em] sm:text-6xl">
@@ -44,10 +42,9 @@ export function HomePage() {
           </div>
         </div>
 
-        <div className="relative overflow-hidden rounded-[2rem] bg-slate-950 p-8 text-white shadow-2xl shadow-slate-900/15 sm:p-10">
-          <div className="absolute -right-16 -top-16 size-56 rounded-full bg-teal-500/20 blur-2xl" />
-          <p className="relative text-xs font-bold uppercase tracking-[0.2em] text-teal-300">Flujo previsto</p>
-          <ol className="relative mt-8 space-y-6">
+        <div className="rounded-lg border border-slate-800 bg-slate-950 p-8 text-white shadow-lg shadow-slate-900/10 sm:p-10">
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Flujo previsto</p>
+          <ol className="mt-8 space-y-6">
             {["Incidencia reportada", "Validación y asignación", "Intervención técnica", "Resolución auditada"].map((item, index) => (
               <li key={item} className="flex items-center gap-4">
                 <span className="grid size-9 shrink-0 place-items-center rounded-full border border-white/20 bg-white/10 text-sm font-bold">{index + 1}</span>
@@ -62,7 +59,7 @@ export function HomePage() {
         <div className="mx-auto grid max-w-6xl gap-px px-6 py-12 md:grid-cols-3">
           {capabilities.map(({ icon: Icon, title, text }) => (
             <article key={title} className="py-6 md:px-8 md:first:pl-0">
-              <Icon className="size-6 text-teal-700" aria-hidden="true" />
+              <Icon className="size-6 text-slate-700" aria-hidden="true" />
               <h2 className="mt-5 text-lg font-semibold">{title}</h2>
               <p className="mt-2 leading-7 text-slate-600">{text}</p>
             </article>

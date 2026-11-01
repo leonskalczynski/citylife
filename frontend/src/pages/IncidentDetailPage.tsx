@@ -21,18 +21,18 @@ export function IncidentDetailPage() {
   return (
     <AppShell>
       <section className="mx-auto max-w-4xl px-5 py-10 sm:px-6 sm:py-14">
-        <Link className="inline-flex items-center gap-2 text-sm font-semibold text-teal-800 hover:underline" to="/my-incidents">
+        <Link className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--accent-ink)] hover:underline" to="/my-incidents">
           <ArrowLeft className="size-4" /> Volver a mis incidencias
         </Link>
 
         {(location.state as { created?: boolean } | null)?.created && (
-          <div className="mt-6 flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
+          <div className="mt-6 flex items-start gap-3 rounded-md border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
             <CheckCircle2 className="mt-0.5 size-5 shrink-0" />
             <div><p className="font-semibold">Incidencia reportada correctamente</p><p className="mt-1">Ya puedes consultar aquí cualquier cambio de estado.</p></div>
           </div>
         )}
 
-        {query.isLoading && <div className="mt-8 h-96 animate-pulse rounded-2xl border border-slate-200 bg-white" />}
+        {query.isLoading && <div className="mt-8 h-96 animate-pulse rounded-lg border border-slate-200 bg-white" />}
         {query.isError && <Card className="mt-8"><CardContent className="py-12 text-center"><h1 className="text-xl font-semibold">No se ha encontrado la incidencia</h1><p className="mt-2 text-sm text-slate-600">Puede que no exista o que no tengas acceso.</p></CardContent></Card>}
         {query.data && (
           <>
@@ -58,11 +58,11 @@ export function IncidentDetailPage() {
               </Card>
             </div>
 
-            <Card className="mt-5 border-teal-100 bg-teal-950 text-white">
+            <Card className="mt-5 border-l-4 border-l-[var(--accent)] shadow-none">
               <CardContent className="py-6">
-                <p className="text-sm font-semibold text-teal-200">Estado actual</p>
-                <h2 className="mt-1 text-xl font-semibold">Tu aviso ha sido recibido</h2>
-                <p className="mt-2 text-sm leading-6 text-teal-50/80">El equipo de operación lo revisará antes de asignarlo al área responsable.</p>
+                <p className="text-sm font-semibold text-[var(--accent-ink)]">Estado actual</p>
+                <h2 className="mt-1 text-xl font-semibold text-slate-950">Tu aviso ha sido recibido</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-600">El equipo de operación lo revisará antes de asignarlo al área responsable.</p>
               </CardContent>
             </Card>
           </>
@@ -73,7 +73,7 @@ export function IncidentDetailPage() {
 }
 
 function Detail({ icon, label, value }: { icon: React.ReactElement; label: string; value: string }) {
-  return <div className="flex gap-3"><span className="mt-0.5 [&>svg]:size-4 [&>svg]:text-teal-700">{icon}</span><div><p className="text-slate-500">{label}</p><p className="mt-0.5 font-medium text-slate-900">{value}</p></div></div>;
+  return <div className="flex gap-3"><span className="mt-0.5 [&>svg]:size-4 [&>svg]:text-slate-500">{icon}</span><div><p className="text-slate-500">{label}</p><p className="mt-0.5 font-medium text-slate-900">{value}</p></div></div>;
 }
 
 function formatDate(value: string) {
