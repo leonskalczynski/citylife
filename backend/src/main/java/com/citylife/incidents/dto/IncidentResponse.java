@@ -25,6 +25,9 @@ public record IncidentResponse(
         DepartmentResponse department,
         UserSummaryResponse assignedTo,
         String rejectionReason,
+        String technicianNotes,
+        String resolutionSummary,
+        Instant resolvedAt,
         Instant createdAt,
         Instant updatedAt
 ) {
@@ -44,6 +47,9 @@ public record IncidentResponse(
                 incident.getDepartment() == null ? null : DepartmentResponse.from(incident.getDepartment()),
                 incident.getAssignedTo() == null ? null : UserSummaryResponse.from(incident.getAssignedTo()),
                 incident.getRejectionReason(),
+                incident.getTechnicianNotes(),
+                incident.getResolutionSummary(),
+                incident.getResolvedAt(),
                 incident.getCreatedAt(),
                 incident.getUpdatedAt()
         );

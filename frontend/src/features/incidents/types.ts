@@ -35,6 +35,9 @@ export type Incident = {
   department?: Department;
   assignedTo?: UserSummary;
   rejectionReason?: string;
+  technicianNotes?: string;
+  resolutionSummary?: string;
+  resolvedAt?: string;
   createdAt: string;
   updatedAt: string;
 };

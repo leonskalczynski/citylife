@@ -69,6 +69,15 @@ public class Incident {
     @Column(name = "rejection_reason", length = 500)
     private String rejectionReason;
 
+    @Column(name = "technician_notes", length = 2000)
+    private String technicianNotes;
+
+    @Column(name = "resolution_summary", length = 2000)
+    private String resolutionSummary;
+
+    @Column(name = "resolved_at")
+    private Instant resolvedAt;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -152,6 +161,27 @@ public class Incident {
         status = IncidentStatus.ASSIGNED;
     }
 
+    public void startWork() {
+        requireStatus(IncidentStatus.ASSIGNED, IncidentStatus.IN_PROGRESS);
+        status = IncidentStatus.IN_PROGRESS;
+    }
+
+    public void updateTechnicianNotes(String notes) {
+        if (status != IncidentStatus.ASSIGNED && status != IncidentStatus.IN_PROGRESS) {
+            throw new InvalidIncidentTransitionException(
+                    "No se puede documentar una incidencia en estado " + status
+            );
+        }
+        technicianNotes = trimToNull(notes);
+    }
+
+    public void resolve(String summary) {
+        requireStatus(IncidentStatus.IN_PROGRESS, IncidentStatus.RESOLVED);
+        resolutionSummary = summary.trim();
+        resolvedAt = Instant.now();
+        status = IncidentStatus.RESOLVED;
+    }
+
     private void requireStatus(IncidentStatus expected, IncidentStatus target) {
         if (status != expected) {
             throw new InvalidIncidentTransitionException(
@@ -174,6 +204,9 @@ public class Incident {
     public Department getDepartment() { return department; }
     public User getAssignedTo() { return assignedTo; }
     public String getRejectionReason() { return rejectionReason; }
+    public String getTechnicianNotes() { return technicianNotes; }
+    public String getResolutionSummary() { return resolutionSummary; }
+    public Instant getResolvedAt() { return resolvedAt; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
 }

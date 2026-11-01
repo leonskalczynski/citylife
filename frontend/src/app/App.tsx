@@ -10,6 +10,8 @@ import { NewIncidentPage } from "@/pages/NewIncidentPage";
 import { RegisterPage } from "@/pages/RegisterPage";
 import { OperationIncidentDetailPage } from "@/pages/OperationIncidentDetailPage";
 import { OperationsIncidentsPage } from "@/pages/OperationsIncidentsPage";
+import { WorkIncidentDetailPage } from "@/pages/WorkIncidentDetailPage";
+import { WorkPage } from "@/pages/WorkPage";
 
 export function App() {
   return (
@@ -28,6 +30,10 @@ export function App() {
       <Route element={<ProtectedRoute roles={["OPERATOR"]} />}>
         <Route path="/operations/incidents" element={<OperationsIncidentsPage />} />
         <Route path="/operations/incidents/:incidentId" element={<OperationIncidentDetailPage />} />
+      </Route>
+      <Route element={<ProtectedRoute roles={["TECHNICIAN"]} />}>
+        <Route path="/work" element={<WorkPage />} />
+        <Route path="/work/:incidentId" element={<WorkIncidentDetailPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

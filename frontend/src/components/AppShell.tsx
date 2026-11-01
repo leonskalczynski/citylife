@@ -1,4 +1,4 @@
-import { BriefcaseBusiness, ClipboardList, LogOut, Plus } from "lucide-react";
+import { BriefcaseBusiness, ClipboardList, LogOut, Plus, Wrench } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link, useNavigate } from "react-router";
 
@@ -34,6 +34,11 @@ export function AppShell({ children }: { children: ReactNode }) {
             {user?.role === "OPERATOR" && (
               <Button asChild variant="outline">
                 <Link to="/operations/incidents"><BriefcaseBusiness className="mr-2 size-4" />Incidencias</Link>
+              </Button>
+            )}
+            {user?.role === "TECHNICIAN" && (
+              <Button asChild variant="outline">
+                <Link to="/work"><Wrench className="mr-2 size-4" />Mis trabajos</Link>
               </Button>
             )}
             <Button variant="outline" onClick={handleLogout} aria-label="Cerrar sesión">

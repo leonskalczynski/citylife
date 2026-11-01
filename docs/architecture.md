@@ -85,7 +85,7 @@ Los componentes de presentación no conocen PostgreSQL ni contienen reglas sensi
 | `StatusChange` | Transición auditable con actor, fecha y motivo |
 | `Attachment` | Metadatos de fotografías y archivos |
 
-En la Fase 4 están materializados `User`, `Category`, `Department` e `Incident`. Una incidencia ciudadana siempre se crea en estado `REPORTED` y prioridad `NORMAL`; esos valores no forman parte del DTO de creación. La operación usa comandos explícitos para validar, rechazar, priorizar y asignar, sin exponer una actualización general del estado.
+En la Fase 5 están materializados `User`, `Category`, `Department` e `Incident`. Una incidencia ciudadana siempre se crea en estado `REPORTED` y prioridad `NORMAL`; esos valores no forman parte del DTO de creación. Operación y trabajo técnico usan comandos explícitos para validar, rechazar, priorizar, asignar, iniciar y resolver, sin exponer una actualización general del estado.
 
 La asignación actual puede mantenerse en `Incident.assignedTo` durante el MVP. Una entidad `Assignment` separada se añadirá solo si aparece información o comportamiento propio que no pueda representarse mediante la incidencia y su historial.
 
@@ -96,7 +96,7 @@ REPORTED → VALIDATED → ASSIGNED → IN_PROGRESS → RESOLVED → CLOSED
     └────→ REJECTED                    └──────→ REOPENED
 ```
 
-El frontend solicita acciones concretas como validar, rechazar, asignar o resolver. El backend comprueba el rol, la propiedad o asignación y la transición permitida antes de modificar el estado. Cada transición registra estado anterior, estado nuevo, usuario, fecha y motivo cuando corresponda.
+El frontend solicita acciones concretas como validar, rechazar, asignar o resolver. El backend comprueba el rol, la propiedad o asignación y la transición permitida antes de modificar el estado. El registro auditable de cada transición se incorpora en la Fase 6.
 
 ## API y seguridad
 

@@ -151,7 +151,7 @@ El perfil `local` crea estos usuarios si todavía no existen:
 
 La contraseña es el valor de `DEMO_USER_PASSWORD`. El inicializador no se ejecuta sin el perfil `local` y nunca reemplaza cuentas existentes.
 
-También se crean siete categorías y, si `citizen@example.com` no tiene avisos, tres incidencias de ejemplo. Los inicializadores son idempotentes y solo se ejecutan con el perfil `local`.
+También se crean siete categorías y, si `citizen@example.com` no tiene avisos, tres incidencias reportadas y una asignada al técnico demo. Los inicializadores son idempotentes y solo se ejecutan con el perfil `local`.
 
 Flyway crea cuatro departamentos de desarrollo. El usuario `operator@example.com` puede revisar las incidencias demo y asignarlas a `technician@example.com`.
 
@@ -178,6 +178,14 @@ Flyway crea cuatro departamentos de desarrollo. El usuario `operator@example.com
 - Solo `OPERATOR` puede acceder a `/api/operations/**`, `/api/departments` y `/api/technicians`.
 - La validación y el rechazo solo parten de `REPORTED`; la asignación parte de `VALIDATED` o actualiza una incidencia `ASSIGNED`.
 - El rechazo exige un motivo y la asignación exige un departamento; el técnico es opcional.
+
+## Flujo técnico
+
+- `/work` lista exclusivamente las incidencias asignadas al técnico autenticado.
+- `/work/:id` permite iniciar la intervención, guardar notas y documentar la resolución.
+- Solo `TECHNICIAN` puede acceder a `/api/work/**`; además, cada consulta y comando comprueba la asignación concreta.
+- `start` solo permite `ASSIGNED → IN_PROGRESS` y `resolve` solo permite `IN_PROGRESS → RESOLVED`.
+- La resolución exige un resumen y registra la fecha de finalización.
 
 ## Problemas habituales
 

@@ -1,4 +1,4 @@
-import { BriefcaseBusiness, ClipboardList, Plus, ShieldCheck, UserRound } from "lucide-react";
+import { BriefcaseBusiness, ClipboardList, Plus, ShieldCheck, UserRound, Wrench } from "lucide-react";
 import { Link } from "react-router";
 
 import { AppShell } from "@/components/AppShell";
@@ -35,6 +35,12 @@ export function DashboardPage() {
         {user?.role === "OPERATOR" && (
           <div className="mt-8">
             <Button asChild size="lg"><Link to="/operations/incidents"><BriefcaseBusiness className="mr-2 size-4" />Abrir bandeja de operación</Link></Button>
+          </div>
+        )}
+
+        {user?.role === "TECHNICIAN" && (
+          <div className="mt-8">
+            <Button asChild size="lg"><Link to="/work"><Wrench className="mr-2 size-4" />Abrir mis trabajos</Link></Button>
           </div>
         )}
 

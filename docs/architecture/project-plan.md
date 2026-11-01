@@ -50,7 +50,7 @@ Las áreas de administración y analítica quedan fuera del MVP inicial.
 - Autenticación: `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/users/me`.
 - Incidencias ciudadanas: `POST /api/incidents`, `GET /api/incidents/my`, `GET /api/incidents/{id}`.
 - Operación: `GET /api/incidents` con paginación/filtros y comandos `validate`, `reject`, `priority`, `assign`.
-- Trabajo técnico: `GET /api/incidents/assigned-to-me` y comandos `accept`, `start`, `resolve`.
+- Trabajo técnico: `GET /api/work/incidents` y comandos `start`, `notes`, `resolve`.
 - Auditoría: `GET /api/incidents/{id}/history`.
 - Catálogos: `GET /api/categories`, `GET /api/departments`, `GET /api/technicians`.
 
@@ -62,8 +62,8 @@ Los cambios de estado serán comandos explícitos, validados en servicios del ba
 2. Autenticación JWT, roles y usuario actual (completada).
 3. Flujo ciudadano mínimo (completada).
 4. Operación: listado, filtros, validación, rechazo y asignación (completada).
-5. Trabajo técnico y resolución (siguiente).
-6. Historial auditable y timeline.
+5. Trabajo técnico y resolución (completada).
+6. Historial auditable y timeline (siguiente).
 7. Adjuntos con límites de tipo y tamaño.
 8. Mapa y geolocalización.
 9. Dashboard básico.

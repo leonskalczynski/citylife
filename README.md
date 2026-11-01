@@ -17,7 +17,7 @@ El MVP se desarrollará de forma incremental e incluirá:
 - fotografías y otros archivos asociados;
 - filtros, paginación, mapa y métricas básicas.
 
-Las Fases 1 a 4 están implementadas: infraestructura local, autenticación JWT, flujo ciudadano y operación municipal. Los operadores disponen de una bandeja paginada con filtros y pueden validar, rechazar con motivo, cambiar prioridad y asignar departamento y técnico mediante comandos protegidos del backend.
+Las Fases 1 a 5 están implementadas: infraestructura local, autenticación JWT, flujo ciudadano, operación municipal y trabajo técnico. Los técnicos disponen de una bandeja propia para iniciar intervenciones, documentarlas y resolverlas mediante comandos protegidos por rol y asignación.
 
 ## Tecnologías y propósito
 
@@ -86,7 +86,7 @@ Usuarios demo del perfil `local`:
 
 Todos usan la contraseña configurada en `DEMO_USER_PASSWORD`; `.env.example` contiene únicamente un valor de desarrollo que debe cambiarse fuera del entorno local.
 
-El perfil `local` también crea categorías urbanas y tres incidencias de ejemplo para `citizen@example.com` cuando ese usuario todavía no tiene ninguna.
+El perfil `local` también crea categorías urbanas, tres incidencias reportadas y un trabajo asignado a `technician@example.com` cuando el ciudadano demo todavía no tiene avisos.
 
 ## API implementada
 
@@ -107,6 +107,11 @@ El perfil `local` también crea categorías urbanas y tres incidencias de ejempl
 | `POST /api/operations/incidents/{id}/assign` | Asignar departamento y técnico opcional |
 | `GET /api/departments` | Consultar departamentos activos |
 | `GET /api/technicians` | Consultar técnicos disponibles |
+| `GET /api/work/incidents` | Listar los trabajos del técnico autenticado |
+| `GET /api/work/incidents/{id}` | Consultar un trabajo propio |
+| `POST /api/work/incidents/{id}/start` | Iniciar una intervención asignada |
+| `PUT /api/work/incidents/{id}/notes` | Documentar la intervención |
+| `POST /api/work/incidents/{id}/resolve` | Resolver con un resumen obligatorio |
 
 ## Documentación
 

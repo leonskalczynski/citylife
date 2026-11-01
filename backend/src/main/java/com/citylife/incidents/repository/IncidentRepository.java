@@ -15,6 +15,10 @@ public interface IncidentRepository extends JpaRepository<Incident, UUID>, JpaSp
 
     Optional<Incident> findByIdAndCreatedBy(UUID id, User createdBy);
 
+    List<Incident> findAllByAssignedToOrderByUpdatedAtDesc(User assignedTo);
+
+    Optional<Incident> findByIdAndAssignedTo(UUID id, User assignedTo);
+
     long countByCreatedBy(User createdBy);
 
 }
