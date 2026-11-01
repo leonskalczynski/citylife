@@ -1,5 +1,7 @@
 # ADR-004: JWT para la SPA
 
+Status: Proposed
+
 ## Context
 
 La futura SPA necesita autenticarse contra una API REST y aplicar autorización por rol en el servidor.

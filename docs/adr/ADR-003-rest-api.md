@@ -1,5 +1,7 @@
 # ADR-003: API REST
 
+Status: Accepted
+
 ## Context
 
 Frontend y backend deben estar desacoplados y todas las reglas importantes deben residir en el backend.

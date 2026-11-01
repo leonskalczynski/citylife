@@ -1,96 +1,83 @@
 # Citylife
 
-Citylife es una plataforma universitaria para gestionar incidencias urbanas. Este repositorio contiene un monolito modular en Spring Boot, una SPA en React y PostgreSQL para desarrollo local.
+Citylife es una plataforma para gestionar incidencias urbanas de principio a fin. Su objetivo es conectar a ciudadanía, operadores municipales y equipos técnicos mediante un flujo claro, seguro y auditable.
 
-## Estado actual
+Una persona podrá reportar problemas como alumbrado averiado, árboles caídos, limpieza, contenedores o daños en la vía pública. Los operadores validarán y asignarán las incidencias, y los técnicos documentarán su intervención y resolución.
 
-La Fase 1 deja preparada la infraestructura y una conexión mínima frontend/backend. Autenticación, incidencias y roles se implementarán de forma incremental en fases posteriores.
+## Características principales
 
-## Arquitectura
+El MVP se desarrollará de forma incremental e incluirá:
+
+- registro, inicio de sesión y autorización por roles;
+- creación y consulta de incidencias por la ciudadanía;
+- validación, rechazo, prioridad y asignación por operadores;
+- gestión de trabajos asignados por técnicos;
+- transiciones de estado controladas por el backend;
+- historial auditable de cada cambio;
+- fotografías y otros archivos asociados;
+- filtros, paginación, mapa y métricas básicas.
+
+La Fase 1, actualmente implementada, contiene la infraestructura local, la comunicación frontend/backend, PostgreSQL, Flyway, OpenAPI y una pantalla inicial. El dominio y la autenticación se incorporarán en las siguientes fases.
+
+## Tecnologías y propósito
+
+| Tecnología | Uso en Citylife |
+| --- | --- |
+| React + TypeScript | Interfaz web tipada y organizada por funcionalidad |
+| Vite | Servidor de desarrollo y build del frontend |
+| Tailwind CSS + shadcn/ui | Estilos y componentes accesibles y reutilizables |
+| React Router | Navegación de la SPA |
+| Spring Boot + Java 21 | API REST y reglas de negocio |
+| Spring Data JPA | Acceso a datos relacionales |
+| Spring Security | Autenticación y autorización en la Fase 2 |
+| PostgreSQL | Persistencia transaccional y auditable |
+| Flyway | Migraciones versionadas de la base de datos |
+| OpenAPI | Documentación y exploración de la API |
+| Docker Compose | PostgreSQL reproducible en desarrollo local |
+| JUnit, Vitest y Testing Library | Pruebas de comportamiento de backend y frontend |
+
+## Arquitectura resumida
 
 ```text
-React + TypeScript (localhost:5173)
-                |
-                | REST /api
-                v
-Spring Boot (localhost:8080)
-                |
-                | JPA + Flyway
-                v
-PostgreSQL (localhost:5432)
+React + TypeScript
+        |
+        | REST/JSON
+        v
+Spring Boot
+        |
+        | JPA + Flyway
+        v
+PostgreSQL
 ```
 
-- `frontend/`: SPA React con Vite, Tailwind CSS, React Router y base de shadcn/ui.
-- `backend/`: API REST Java 21 con Spring Boot.
-- `docs/`: propuesta de arquitectura, modelo inicial y decisiones.
-- `compose.yaml`: PostgreSQL local.
+Citylife es un monolito modular: mantiene una única aplicación backend desplegable, pero separa el código por funcionalidades. React nunca accede directamente a PostgreSQL y el backend es la fuente de verdad para permisos, validaciones y cambios de estado.
 
-## Requisitos
+## Inicio rápido
 
-- Node.js 20 o superior
-- Java 21
-- Maven 3.8 o superior
-- Docker con Docker Compose
-
-## Arranque local
-
-1. Opcionalmente copia `.env.example` a `.env` y cambia las credenciales locales.
-2. Levanta PostgreSQL:
-
-   ```bash
-   docker compose up -d postgres
-   ```
-
-3. Arranca el backend:
-
-   ```bash
-   cd backend
-   mvn spring-boot:run
-   ```
-
-4. En otra terminal, arranca el frontend:
-
-   ```bash
-   cd frontend
-   npm install
-   npm run dev
-   ```
-
-Abre `http://localhost:5173`. La pantalla consulta `GET /api/system/status` y muestra si la API está disponible.
-
-## Variables de entorno
-
-Backend:
-
-| Variable | Valor local por defecto |
-| --- | --- |
-| `DB_URL` | `jdbc:postgresql://localhost:5432/citylife` |
-| `DB_USERNAME` | `citylife` |
-| `DB_PASSWORD` | `citylife_local_password` |
-| `CORS_ALLOWED_ORIGIN` | `http://localhost:5173` |
-
-Frontend:
-
-| Variable | Valor local por defecto |
-| --- | --- |
-| `VITE_API_URL` | vacío; Vite redirige `/api` a `http://localhost:8080` |
-
-## Verificación
+Requisitos: Node.js 20+, Java 21, Maven 3.8+ y Docker Compose.
 
 ```bash
-cd backend && mvn test
-cd frontend && npm test -- --run
-cd frontend && npm run build
+docker compose up -d postgres
+
+cd backend
+mvn spring-boot:run
+
+# En otra terminal
+cd frontend
+npm install
+npm run dev
 ```
 
-Swagger UI estará disponible en `http://localhost:8080/swagger-ui` y el estado técnico de Spring Boot en `http://localhost:8080/actuator/health`.
-
-Todavía no existen usuarios demo; se añadirán con autenticación en la Fase 2 para evitar credenciales o datos que no puedan utilizarse aún.
+Abre `http://localhost:5173`. Consulta la guía de desarrollo para configurar variables, ejecutar pruebas y resolver problemas habituales.
 
 ## Documentación
 
-- [Propuesta técnica](docs/architecture/project-plan.md)
-- [Contexto C4](docs/architecture/c4-context.md)
-- [Contenedores C4](docs/architecture/c4-containers.md)
-- [Decisiones arquitectónicas](docs/adr/)
+- [Arquitectura](docs/architecture.md)
+- [Desarrollo local](docs/development.md)
+- [Despliegue](docs/deployment.md)
+- [Cómo contribuir](CONTRIBUTING.md)
+- [Registro de decisiones arquitectónicas](docs/adr/README.md)
+- [Plan incremental del proyecto](docs/architecture/project-plan.md)
+
+Durante el desarrollo, Swagger UI está disponible en `http://localhost:8080/swagger-ui` y el estado de la aplicación en `http://localhost:8080/actuator/health`.
 

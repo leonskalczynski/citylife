@@ -1,5 +1,7 @@
 # ADR-002: React
 
+Status: Accepted
+
 ## Context
 
 La aplicación necesita una interfaz SPA responsive para varios perfiles y flujos.

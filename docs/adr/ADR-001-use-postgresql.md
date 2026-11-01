@@ -1,5 +1,7 @@
 # ADR-001: PostgreSQL
 
+Status: Accepted
+
 ## Context
 
 Citylife necesita relaciones, integridad referencial, consultas filtradas y un historial auditable.
