@@ -2,6 +2,8 @@ package com.citylife.incidents.controller;
 
 import com.citylife.incidents.dto.CreateIncidentRequest;
 import com.citylife.incidents.dto.IncidentResponse;
+import com.citylife.incidents.dto.IncidentStatusChangeResponse;
+import com.citylife.incidents.service.IncidentAuditService;
 import com.citylife.incidents.service.IncidentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -29,9 +31,11 @@ import java.util.UUID;
 public class IncidentController {
 
     private final IncidentService incidentService;
+    private final IncidentAuditService auditService;
 
-    public IncidentController(IncidentService incidentService) {
+    public IncidentController(IncidentService incidentService, IncidentAuditService auditService) {
         this.incidentService = incidentService;
+        this.auditService = auditService;
     }
 
     @PostMapping
@@ -54,5 +58,11 @@ public class IncidentController {
     @Operation(summary = "Returns one incident owned by the authenticated citizen")
     public IncidentResponse getMine(Authentication authentication, @PathVariable UUID incidentId) {
         return incidentService.getMine(authentication.getName(), incidentId);
+    }
+
+    @GetMapping("/{incidentId}/history")
+    @Operation(summary = "Returns the visible status history of an owned incident")
+    public List<IncidentStatusChangeResponse> getHistory(Authentication authentication, @PathVariable UUID incidentId) {
+        return auditService.listForCitizen(incidentId, authentication.getName());
     }
 }

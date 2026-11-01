@@ -6,6 +6,7 @@ import com.citylife.departments.model.Department;
 import com.citylife.departments.repository.DepartmentRepository;
 import com.citylife.incidents.model.Incident;
 import com.citylife.incidents.repository.IncidentRepository;
+import com.citylife.incidents.service.IncidentAuditService;
 import com.citylife.users.model.User;
 import com.citylife.users.repository.UserRepository;
 import org.springframework.boot.ApplicationArguments;
@@ -24,17 +25,20 @@ public class DemoIncidentInitializer implements ApplicationRunner {
     private final CategoryRepository categoryRepository;
     private final IncidentRepository incidentRepository;
     private final DepartmentRepository departmentRepository;
+    private final IncidentAuditService auditService;
 
     public DemoIncidentInitializer(
             UserRepository userRepository,
             CategoryRepository categoryRepository,
             IncidentRepository incidentRepository,
-            DepartmentRepository departmentRepository
+            DepartmentRepository departmentRepository,
+            IncidentAuditService auditService
     ) {
         this.userRepository = userRepository;
         this.categoryRepository = categoryRepository;
         this.incidentRepository = incidentRepository;
         this.departmentRepository = departmentRepository;
+        this.auditService = auditService;
     }
 
     @Override
@@ -51,7 +55,8 @@ public class DemoIncidentInitializer implements ApplicationRunner {
 
     private void create(User citizen, String categoryCode, String title, String description, String address, String district) {
         Category category = categoryRepository.findByCode(categoryCode).orElseThrow();
-        incidentRepository.save(new Incident(title, description, category, null, null, address, district, citizen));
+        Incident incident = incidentRepository.save(new Incident(title, description, category, null, null, address, district, citizen));
+        auditService.record(incident, null, citizen, null);
     }
 
     private void createAssignedWork(User citizen) {
@@ -61,7 +66,8 @@ public class DemoIncidentInitializer implements ApplicationRunner {
                 .findFirst()
                 .orElseThrow();
         User technician = userRepository.findByEmailIgnoreCase("technician@example.com").orElseThrow();
-        Incident incident = new Incident(
+        User operator = userRepository.findByEmailIgnoreCase("operator@example.com").orElseThrow();
+        Incident incident = incidentRepository.save(new Incident(
                 "Banco dañado en la plaza",
                 "El respaldo del banco está suelto y puede causar una caída.",
                 category,
@@ -70,9 +76,13 @@ public class DemoIncidentInitializer implements ApplicationRunner {
                 "Plaza de la Villa, 5",
                 "Centro",
                 citizen
-        );
+        ));
+        auditService.record(incident, null, citizen, null);
+        var previousStatus = incident.getStatus();
         incident.validateIncident();
+        auditService.record(incident, previousStatus, operator, null);
+        previousStatus = incident.getStatus();
         incident.assign(department, technician);
-        incidentRepository.save(incident);
+        auditService.record(incident, previousStatus, operator, null);
     }
 }

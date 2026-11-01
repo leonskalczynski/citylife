@@ -1,9 +1,11 @@
 package com.citylife.incidents.controller;
 
 import com.citylife.incidents.dto.IncidentResponse;
+import com.citylife.incidents.dto.IncidentStatusChangeResponse;
 import com.citylife.incidents.dto.ResolveIncidentRequest;
 import com.citylife.incidents.dto.UpdateWorkNotesRequest;
 import com.citylife.incidents.service.TechnicianWorkService;
+import com.citylife.incidents.service.IncidentAuditService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -29,9 +31,11 @@ import java.util.UUID;
 public class TechnicianWorkController {
 
     private final TechnicianWorkService workService;
+    private final IncidentAuditService auditService;
 
-    public TechnicianWorkController(TechnicianWorkService workService) {
+    public TechnicianWorkController(TechnicianWorkService workService, IncidentAuditService auditService) {
         this.workService = workService;
+        this.auditService = auditService;
     }
 
     @GetMapping
@@ -44,6 +48,12 @@ public class TechnicianWorkController {
     @Operation(summary = "Returns an incident assigned to the authenticated technician")
     public IncidentResponse get(@PathVariable UUID incidentId, Authentication authentication) {
         return workService.get(incidentId, authentication.getName());
+    }
+
+    @GetMapping("/{incidentId}/history")
+    @Operation(summary = "Returns status history for an assigned incident")
+    public List<IncidentStatusChangeResponse> getHistory(@PathVariable UUID incidentId, Authentication authentication) {
+        return auditService.listForTechnician(incidentId, authentication.getName());
     }
 
     @PostMapping("/{incidentId}/start")

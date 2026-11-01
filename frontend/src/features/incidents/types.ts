@@ -20,6 +20,15 @@ export type UserSummary = {
   role: string;
 };
 
+export type IncidentStatusChange = {
+  id: string;
+  previousStatus?: IncidentStatus;
+  newStatus: IncidentStatus;
+  changedBy: Pick<UserSummary, "id" | "displayName" | "role">;
+  reason?: string;
+  changedAt: string;
+};
+
 export type Incident = {
   id: string;
   title: string;

@@ -3,6 +3,7 @@ package com.citylife.incidents;
 import com.citylife.categories.model.Category;
 import com.citylife.categories.repository.CategoryRepository;
 import com.citylife.incidents.repository.IncidentRepository;
+import com.citylife.incidents.repository.IncidentStatusChangeRepository;
 import com.citylife.users.model.Role;
 import com.citylife.users.model.User;
 import com.citylife.users.repository.UserRepository;
@@ -30,6 +31,7 @@ class CitizenIncidentFlowIntegrationTest {
 
     @Autowired MockMvc mockMvc;
     @Autowired IncidentRepository incidentRepository;
+    @Autowired IncidentStatusChangeRepository statusChangeRepository;
     @Autowired CategoryRepository categoryRepository;
     @Autowired UserRepository userRepository;
     @Autowired PasswordEncoder passwordEncoder;
@@ -38,6 +40,7 @@ class CitizenIncidentFlowIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        statusChangeRepository.deleteAll();
         incidentRepository.deleteAll();
         categoryRepository.deleteAll();
         userRepository.deleteAll();
@@ -72,6 +75,15 @@ class CitizenIncidentFlowIntegrationTest {
                         .with(user("citizen@example.com").roles("CITIZEN")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("Farola apagada"));
+
+        mockMvc.perform(get("/api/incidents/{id}/history", incidentId)
+                        .with(user("citizen@example.com").roles("CITIZEN")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].previousStatus").doesNotExist())
+                .andExpect(jsonPath("$[0].newStatus").value("REPORTED"))
+                .andExpect(jsonPath("$[0].changedBy.displayName").value("citizen@example.com"))
+                .andExpect(jsonPath("$[0].changedBy.email").doesNotExist());
     }
 
     @Test
@@ -89,6 +101,10 @@ class CitizenIncidentFlowIntegrationTest {
                         .with(user("other@example.com").roles("CITIZEN")))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("INCIDENT_NOT_FOUND"));
+
+        mockMvc.perform(get("/api/incidents/{id}/history", incidentId)
+                        .with(user("other@example.com").roles("CITIZEN")))
+                .andExpect(status().isNotFound());
 
         mockMvc.perform(get("/api/incidents/my")
                         .with(user("other@example.com").roles("CITIZEN")))

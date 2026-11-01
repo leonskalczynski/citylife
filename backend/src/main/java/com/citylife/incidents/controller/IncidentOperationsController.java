@@ -3,16 +3,19 @@ package com.citylife.incidents.controller;
 import com.citylife.incidents.dto.AssignIncidentRequest;
 import com.citylife.incidents.dto.ChangePriorityRequest;
 import com.citylife.incidents.dto.IncidentResponse;
+import com.citylife.incidents.dto.IncidentStatusChangeResponse;
 import com.citylife.incidents.dto.PageResponse;
 import com.citylife.incidents.dto.RejectIncidentRequest;
 import com.citylife.incidents.model.IncidentStatus;
 import com.citylife.incidents.model.Priority;
 import com.citylife.incidents.service.IncidentOperationsService;
+import com.citylife.incidents.service.IncidentAuditService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/operations/incidents")
@@ -31,9 +35,11 @@ import java.util.UUID;
 public class IncidentOperationsController {
 
     private final IncidentOperationsService operationsService;
+    private final IncidentAuditService auditService;
 
-    public IncidentOperationsController(IncidentOperationsService operationsService) {
+    public IncidentOperationsController(IncidentOperationsService operationsService, IncidentAuditService auditService) {
         this.operationsService = operationsService;
+        this.auditService = auditService;
     }
 
     @GetMapping
@@ -59,14 +65,14 @@ public class IncidentOperationsController {
 
     @PostMapping("/{incidentId}/validate")
     @Operation(summary = "Validates a reported incident")
-    public IncidentResponse validate(@PathVariable UUID incidentId) {
-        return operationsService.validate(incidentId);
+    public IncidentResponse validate(@PathVariable UUID incidentId, Authentication authentication) {
+        return operationsService.validate(incidentId, authentication.getName());
     }
 
     @PostMapping("/{incidentId}/reject")
     @Operation(summary = "Rejects a reported incident with a reason")
-    public IncidentResponse reject(@PathVariable UUID incidentId, @Valid @RequestBody RejectIncidentRequest request) {
-        return operationsService.reject(incidentId, request);
+    public IncidentResponse reject(@PathVariable UUID incidentId, Authentication authentication, @Valid @RequestBody RejectIncidentRequest request) {
+        return operationsService.reject(incidentId, authentication.getName(), request);
     }
 
     @PostMapping("/{incidentId}/priority")
@@ -77,7 +83,13 @@ public class IncidentOperationsController {
 
     @PostMapping("/{incidentId}/assign")
     @Operation(summary = "Assigns an incident to a department and optional technician")
-    public IncidentResponse assign(@PathVariable UUID incidentId, @Valid @RequestBody AssignIncidentRequest request) {
-        return operationsService.assign(incidentId, request);
+    public IncidentResponse assign(@PathVariable UUID incidentId, Authentication authentication, @Valid @RequestBody AssignIncidentRequest request) {
+        return operationsService.assign(incidentId, authentication.getName(), request);
+    }
+
+    @GetMapping("/{incidentId}/history")
+    @Operation(summary = "Returns the complete status history of an incident")
+    public List<IncidentStatusChangeResponse> getHistory(@PathVariable UUID incidentId) {
+        return auditService.listForOperator(incidentId);
     }
 }

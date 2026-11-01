@@ -1,4 +1,4 @@
-import type { Department, Incident, OperationFilters, PageResponse, Priority, UserSummary } from "@/features/incidents/types";
+import type { Department, Incident, IncidentStatusChange, OperationFilters, PageResponse, Priority, UserSummary } from "@/features/incidents/types";
 import { requestJson } from "@/lib/api";
 
 export function getOperationIncidents(token: string, filters: OperationFilters, signal?: AbortSignal) {
@@ -11,6 +11,10 @@ export function getOperationIncidents(token: string, filters: OperationFilters, 
 
 export function getOperationIncident(token: string, incidentId: string, signal?: AbortSignal) {
   return requestJson<Incident>(`/api/operations/incidents/${incidentId}`, { token, signal });
+}
+
+export function getOperationIncidentHistory(token: string, incidentId: string, signal?: AbortSignal) {
+  return requestJson<IncidentStatusChange[]>(`/api/operations/incidents/${incidentId}/history`, { token, signal });
 }
 
 export function validateIncident(token: string, incidentId: string) {

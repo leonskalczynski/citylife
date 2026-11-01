@@ -6,6 +6,7 @@ import com.citylife.departments.model.Department;
 import com.citylife.departments.repository.DepartmentRepository;
 import com.citylife.incidents.model.Incident;
 import com.citylife.incidents.repository.IncidentRepository;
+import com.citylife.incidents.repository.IncidentStatusChangeRepository;
 import com.citylife.users.model.Role;
 import com.citylife.users.model.User;
 import com.citylife.users.repository.UserRepository;
@@ -30,6 +31,7 @@ class IncidentOperationsIntegrationTest {
 
     @Autowired MockMvc mockMvc;
     @Autowired IncidentRepository incidentRepository;
+    @Autowired IncidentStatusChangeRepository statusChangeRepository;
     @Autowired CategoryRepository categoryRepository;
     @Autowired DepartmentRepository departmentRepository;
     @Autowired UserRepository userRepository;
@@ -42,6 +44,7 @@ class IncidentOperationsIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        statusChangeRepository.deleteAll();
         incidentRepository.deleteAll();
         departmentRepository.deleteAll();
         categoryRepository.deleteAll();
@@ -91,6 +94,14 @@ class IncidentOperationsIntegrationTest {
                         .with(user("operator@example.com").roles("OPERATOR")))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("INVALID_INCIDENT_TRANSITION"));
+
+        mockMvc.perform(get("/api/operations/incidents/{id}/history", incident.getId())
+                        .with(user("operator@example.com").roles("OPERATOR")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].previousStatus").value("REPORTED"))
+                .andExpect(jsonPath("$[0].newStatus").value("VALIDATED"))
+                .andExpect(jsonPath("$[0].changedBy.displayName").value("operator@example.com"));
     }
 
     @Test
@@ -111,6 +122,11 @@ class IncidentOperationsIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("REJECTED"))
                 .andExpect(jsonPath("$.rejectionReason").value("La incidencia está duplicada"));
+
+        mockMvc.perform(get("/api/operations/incidents/{id}/history", incident.getId())
+                        .with(user("operator@example.com").roles("OPERATOR")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].reason").value("La incidencia está duplicada"));
     }
 
     @Test

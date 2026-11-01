@@ -6,6 +6,7 @@ import com.citylife.departments.model.Department;
 import com.citylife.departments.repository.DepartmentRepository;
 import com.citylife.incidents.model.Incident;
 import com.citylife.incidents.repository.IncidentRepository;
+import com.citylife.incidents.repository.IncidentStatusChangeRepository;
 import com.citylife.users.model.Role;
 import com.citylife.users.model.User;
 import com.citylife.users.repository.UserRepository;
@@ -31,6 +32,7 @@ class TechnicianWorkIntegrationTest {
 
     @Autowired MockMvc mockMvc;
     @Autowired IncidentRepository incidentRepository;
+    @Autowired IncidentStatusChangeRepository statusChangeRepository;
     @Autowired CategoryRepository categoryRepository;
     @Autowired DepartmentRepository departmentRepository;
     @Autowired UserRepository userRepository;
@@ -44,6 +46,7 @@ class TechnicianWorkIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        statusChangeRepository.deleteAll();
         incidentRepository.deleteAll();
         departmentRepository.deleteAll();
         categoryRepository.deleteAll();
@@ -106,6 +109,14 @@ class TechnicianWorkIntegrationTest {
                 .andExpect(jsonPath("$.status").value("RESOLVED"))
                 .andExpect(jsonPath("$.resolutionSummary").value("Baldosa sustituida y pavimento nivelado."))
                 .andExpect(jsonPath("$.resolvedAt").isNotEmpty());
+
+        mockMvc.perform(get("/api/work/incidents/{id}/history", incident.getId())
+                        .with(user("technician@example.com").roles("TECHNICIAN")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].newStatus").value("IN_PROGRESS"))
+                .andExpect(jsonPath("$[1].newStatus").value("RESOLVED"))
+                .andExpect(jsonPath("$[1].changedBy.displayName").value("technician@example.com"));
     }
 
     @Test

@@ -36,15 +36,18 @@ public class IncidentOperationsService {
     private final IncidentRepository incidentRepository;
     private final DepartmentRepository departmentRepository;
     private final UserRepository userRepository;
+    private final IncidentAuditService auditService;
 
     public IncidentOperationsService(
             IncidentRepository incidentRepository,
             DepartmentRepository departmentRepository,
-            UserRepository userRepository
+            UserRepository userRepository,
+            IncidentAuditService auditService
     ) {
         this.incidentRepository = incidentRepository;
         this.departmentRepository = departmentRepository;
         this.userRepository = userRepository;
+        this.auditService = auditService;
     }
 
     @Transactional(readOnly = true)
@@ -77,17 +80,21 @@ public class IncidentOperationsService {
     }
 
     @Transactional
-    public IncidentResponse validate(UUID incidentId) {
+    public IncidentResponse validate(UUID incidentId, String operatorEmail) {
         Incident incident = getIncident(incidentId);
+        IncidentStatus previousStatus = incident.getStatus();
         incident.validateIncident();
+        auditService.record(incident, previousStatus, getUser(operatorEmail), null);
         log.info("Incident {} validated", incidentId);
         return IncidentResponse.from(incident);
     }
 
     @Transactional
-    public IncidentResponse reject(UUID incidentId, RejectIncidentRequest request) {
+    public IncidentResponse reject(UUID incidentId, String operatorEmail, RejectIncidentRequest request) {
         Incident incident = getIncident(incidentId);
+        IncidentStatus previousStatus = incident.getStatus();
         incident.reject(request.reason());
+        auditService.record(incident, previousStatus, getUser(operatorEmail), request.reason());
         log.info("Incident {} rejected", incidentId);
         return IncidentResponse.from(incident);
     }
@@ -101,13 +108,15 @@ public class IncidentOperationsService {
     }
 
     @Transactional
-    public IncidentResponse assign(UUID incidentId, AssignIncidentRequest request) {
+    public IncidentResponse assign(UUID incidentId, String operatorEmail, AssignIncidentRequest request) {
         Incident incident = getIncident(incidentId);
+        IncidentStatus previousStatus = incident.getStatus();
         Department department = departmentRepository.findById(request.departmentId())
                 .filter(Department::isActive)
                 .orElseThrow(() -> new ResourceNotFoundException("DEPARTMENT_NOT_FOUND", "Departamento no encontrado"));
         User technician = request.technicianId() == null ? null : getTechnician(request.technicianId());
         incident.assign(department, technician);
+        auditService.record(incident, previousStatus, getUser(operatorEmail), null);
         log.info("Incident {} assigned to department {} and technician {}", incidentId, department.getId(), technician == null ? null : technician.getId());
         return IncidentResponse.from(incident);
     }
@@ -124,6 +133,11 @@ public class IncidentOperationsService {
             throw new ResourceNotFoundException("TECHNICIAN_NOT_FOUND", "Técnico no encontrado");
         }
         return user;
+    }
+
+    private User getUser(String email) {
+        return userRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new ResourceNotFoundException("USER_NOT_FOUND", "Usuario no encontrado"));
     }
 
     private String blankToNull(String value) {

@@ -5,8 +5,10 @@ import { Link, useLocation, useParams } from "react-router";
 import { AppShell } from "@/components/AppShell";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useAuth } from "@/features/auth/components/AuthProvider";
-import { getIncident } from "@/features/incidents/api/incidentsApi";
+import { getIncident, getIncidentHistory } from "@/features/incidents/api/incidentsApi";
 import { IncidentStatusBadge } from "@/features/incidents/components/IncidentStatusBadge";
+import { IncidentTimeline } from "@/features/incidents/components/IncidentTimeline";
+import type { IncidentStatus } from "@/features/incidents/types";
 
 export function IncidentDetailPage() {
   const { token } = useAuth();
@@ -15,6 +17,11 @@ export function IncidentDetailPage() {
   const query = useQuery({
     queryKey: ["incident", incidentId],
     queryFn: ({ signal }) => getIncident(token!, incidentId, signal),
+    enabled: Boolean(incidentId),
+  });
+  const historyQuery = useQuery({
+    queryKey: ["incident-history", incidentId],
+    queryFn: ({ signal }) => getIncidentHistory(token!, incidentId, signal),
     enabled: Boolean(incidentId),
   });
 
@@ -61,16 +68,28 @@ export function IncidentDetailPage() {
             <Card className="mt-5 border-l-4 border-l-[var(--accent)] shadow-none">
               <CardContent className="py-6">
                 <p className="text-sm font-semibold text-[var(--accent-ink)]">Estado actual</p>
-                <h2 className="mt-1 text-xl font-semibold text-slate-950">Tu aviso ha sido recibido</h2>
-                <p className="mt-2 text-sm leading-6 text-slate-600">El equipo de operación lo revisará antes de asignarlo al área responsable.</p>
+                <h2 className="mt-1 text-xl font-semibold text-slate-950">{stateCopy[query.data.status].title}</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-600">{stateCopy[query.data.status].description}</p>
               </CardContent>
             </Card>
+            <div className="mt-5"><IncidentTimeline changes={historyQuery.data} isLoading={historyQuery.isLoading} isError={historyQuery.isError} /></div>
           </>
         )}
       </section>
     </AppShell>
   );
 }
+
+const stateCopy: Record<IncidentStatus, { title: string; description: string }> = {
+  REPORTED: { title: "Tu aviso ha sido recibido", description: "El equipo de operación lo revisará antes de asignarlo al área responsable." },
+  VALIDATED: { title: "La incidencia ha sido validada", description: "Operación está preparando su asignación al equipo responsable." },
+  REJECTED: { title: "La incidencia ha sido rechazada", description: "Consulta el historial y el motivo registrado por operación." },
+  ASSIGNED: { title: "El trabajo está asignado", description: "Un equipo técnico tiene la incidencia en su bandeja de trabajo." },
+  IN_PROGRESS: { title: "La intervención está en curso", description: "El equipo técnico ya está trabajando en la incidencia." },
+  RESOLVED: { title: "La incidencia está resuelta", description: "La intervención técnica ha finalizado y su resolución ha quedado documentada." },
+  REOPENED: { title: "La incidencia se ha reabierto", description: "El caso vuelve a estar activo para una nueva revisión." },
+  CLOSED: { title: "La incidencia está cerrada", description: "El proceso ha finalizado." },
+};
 
 function Detail({ icon, label, value }: { icon: React.ReactElement; label: string; value: string }) {
   return <div className="flex gap-3"><span className="mt-0.5 [&>svg]:size-4 [&>svg]:text-slate-500">{icon}</span><div><p className="text-slate-500">{label}</p><p className="mt-0.5 font-medium text-slate-900">{value}</p></div></div>;

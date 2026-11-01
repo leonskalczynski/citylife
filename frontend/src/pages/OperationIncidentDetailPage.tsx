@@ -13,8 +13,9 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/features/auth/components/AuthProvider";
-import { assignIncident, changeIncidentPriority, getDepartments, getOperationIncident, getTechnicians, rejectIncident, validateIncident } from "@/features/incidents/api/operationsApi";
+import { assignIncident, changeIncidentPriority, getDepartments, getOperationIncident, getOperationIncidentHistory, getTechnicians, rejectIncident, validateIncident } from "@/features/incidents/api/operationsApi";
 import { IncidentStatusBadge } from "@/features/incidents/components/IncidentStatusBadge";
+import { IncidentTimeline } from "@/features/incidents/components/IncidentTimeline";
 import { assignmentSchema, prioritySchema, rejectIncidentSchema } from "@/features/incidents/lib/operationSchemas";
 import type { Incident } from "@/features/incidents/types";
 import { ApiClientError } from "@/lib/api";
@@ -28,6 +29,7 @@ export function OperationIncidentDetailPage() {
   const { incidentId = "" } = useParams();
   const queryClient = useQueryClient();
   const incidentQuery = useQuery({ queryKey: ["operation-incident", incidentId], queryFn: ({ signal }) => getOperationIncident(token!, incidentId, signal) });
+  const historyQuery = useQuery({ queryKey: ["operation-incident-history", incidentId], queryFn: ({ signal }) => getOperationIncidentHistory(token!, incidentId, signal) });
   const departments = useQuery({ queryKey: ["departments"], queryFn: ({ signal }) => getDepartments(token!, signal) });
   const technicians = useQuery({ queryKey: ["technicians"], queryFn: ({ signal }) => getTechnicians(token!, signal) });
   const rejectForm = useForm<RejectForm>({ resolver: zodResolver(rejectIncidentSchema), defaultValues: { reason: "" } });
@@ -43,6 +45,7 @@ export function OperationIncidentDetailPage() {
   const updateIncident = (incident: Incident) => {
     queryClient.setQueryData(["operation-incident", incidentId], incident);
     queryClient.invalidateQueries({ queryKey: ["operation-incidents"] });
+    queryClient.invalidateQueries({ queryKey: ["operation-incident-history", incidentId] });
   };
   const validateMutation = useMutation({ mutationFn: () => validateIncident(token!, incidentId), onSuccess: updateIncident });
   const rejectMutation = useMutation({ mutationFn: (data: RejectForm) => rejectIncident(token!, incidentId, data.reason), onSuccess: updateIncident });
@@ -70,6 +73,7 @@ export function OperationIncidentDetailPage() {
                 <Card><CardHeader><h2 className="text-lg font-semibold">Descripción</h2></CardHeader><CardContent><p className="whitespace-pre-wrap leading-7 text-slate-700">{incidentQuery.data.description}</p></CardContent></Card>
                 <Card><CardHeader><h2 className="text-lg font-semibold">Contexto</h2></CardHeader><CardContent className="grid gap-5 sm:grid-cols-2"><Detail icon={<UserRound />} label="Ciudadano" value={`${incidentQuery.data.createdBy.displayName} · ${incidentQuery.data.createdBy.email}`} /><Detail icon={<CalendarDays />} label="Reportada" value={formatDate(incidentQuery.data.createdAt)} />{(incidentQuery.data.address || incidentQuery.data.district) && <Detail icon={<MapPin />} label="Ubicación" value={[incidentQuery.data.address, incidentQuery.data.district].filter(Boolean).join(" · ")} />}</CardContent></Card>
                 {incidentQuery.data.rejectionReason && <Card className="border-red-200"><CardHeader><h2 className="text-lg font-semibold text-red-900">Motivo del rechazo</h2></CardHeader><CardContent className="text-sm text-red-800">{incidentQuery.data.rejectionReason}</CardContent></Card>}
+                <IncidentTimeline changes={historyQuery.data} isLoading={historyQuery.isLoading} isError={historyQuery.isError} />
               </div>
 
               <aside className="space-y-5">

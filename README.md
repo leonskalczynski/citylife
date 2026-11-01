@@ -17,7 +17,7 @@ El MVP se desarrollará de forma incremental e incluirá:
 - fotografías y otros archivos asociados;
 - filtros, paginación, mapa y métricas básicas.
 
-Las Fases 1 a 5 están implementadas: infraestructura local, autenticación JWT, flujo ciudadano, operación municipal y trabajo técnico. Los técnicos disponen de una bandeja propia para iniciar intervenciones, documentarlas y resolverlas mediante comandos protegidos por rol y asignación.
+Las Fases 1 a 6 están implementadas: infraestructura local, autenticación JWT, flujos de ciudadanía, operación y trabajo técnico, además de un historial auditable. Cada transición guarda estado anterior y nuevo, actor, fecha y motivo cuando corresponde; los tres perfiles pueden consultar una timeline adaptada a sus permisos.
 
 ## Tecnologías y propósito
 
@@ -112,6 +112,9 @@ El perfil `local` también crea categorías urbanas, tres incidencias reportadas
 | `POST /api/work/incidents/{id}/start` | Iniciar una intervención asignada |
 | `PUT /api/work/incidents/{id}/notes` | Documentar la intervención |
 | `POST /api/work/incidents/{id}/resolve` | Resolver con un resumen obligatorio |
+| `GET /api/incidents/{id}/history` | Consultar el historial de una incidencia propia |
+| `GET /api/operations/incidents/{id}/history` | Consultar el historial como operador |
+| `GET /api/work/incidents/{id}/history` | Consultar el historial de un trabajo asignado |
 
 ## Documentación
 

@@ -26,15 +26,18 @@ public class IncidentService {
     private final IncidentRepository incidentRepository;
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
+    private final IncidentAuditService auditService;
 
     public IncidentService(
             IncidentRepository incidentRepository,
             CategoryRepository categoryRepository,
-            UserRepository userRepository
+            UserRepository userRepository,
+            IncidentAuditService auditService
     ) {
         this.incidentRepository = incidentRepository;
         this.categoryRepository = categoryRepository;
         this.userRepository = userRepository;
+        this.auditService = auditService;
     }
 
     @Transactional
@@ -56,6 +59,7 @@ public class IncidentService {
                 citizen
         );
         Incident saved = incidentRepository.save(incident);
+        auditService.record(saved, null, citizen, null);
         log.info("Incident {} reported by user {}", saved.getId(), citizen.getId());
         return IncidentResponse.from(saved);
     }

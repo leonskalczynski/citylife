@@ -23,10 +23,16 @@ public class TechnicianWorkService {
 
     private final IncidentRepository incidentRepository;
     private final UserRepository userRepository;
+    private final IncidentAuditService auditService;
 
-    public TechnicianWorkService(IncidentRepository incidentRepository, UserRepository userRepository) {
+    public TechnicianWorkService(
+            IncidentRepository incidentRepository,
+            UserRepository userRepository,
+            IncidentAuditService auditService
+    ) {
         this.incidentRepository = incidentRepository;
         this.userRepository = userRepository;
+        this.auditService = auditService;
     }
 
     @Transactional(readOnly = true)
@@ -44,8 +50,11 @@ public class TechnicianWorkService {
 
     @Transactional
     public IncidentResponse start(UUID incidentId, String technicianEmail) {
-        Incident incident = getAssignedIncident(incidentId, getTechnician(technicianEmail));
+        User technician = getTechnician(technicianEmail);
+        Incident incident = getAssignedIncident(incidentId, technician);
+        var previousStatus = incident.getStatus();
         incident.startWork();
+        auditService.record(incident, previousStatus, technician, null);
         log.info("Technician started work on incident {}", incidentId);
         return IncidentResponse.from(incident);
     }
@@ -60,8 +69,11 @@ public class TechnicianWorkService {
 
     @Transactional
     public IncidentResponse resolve(UUID incidentId, String technicianEmail, ResolveIncidentRequest request) {
-        Incident incident = getAssignedIncident(incidentId, getTechnician(technicianEmail));
+        User technician = getTechnician(technicianEmail);
+        Incident incident = getAssignedIncident(incidentId, technician);
+        var previousStatus = incident.getStatus();
         incident.resolve(request.summary());
+        auditService.record(incident, previousStatus, technician, null);
         log.info("Technician resolved incident {}", incidentId);
         return IncidentResponse.from(incident);
     }

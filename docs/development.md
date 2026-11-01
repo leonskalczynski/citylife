@@ -187,6 +187,14 @@ Flyway crea cuatro departamentos de desarrollo. El usuario `operator@example.com
 - `start` solo permite `ASSIGNED → IN_PROGRESS` y `resolve` solo permite `IN_PROGRESS → RESOLVED`.
 - La resolución exige un resumen y registra la fecha de finalización.
 
+## Historial auditable
+
+- Cada creación o transición de estado genera un registro en `incident_status_changes` dentro de la misma transacción.
+- El registro conserva estado anterior, estado nuevo, actor, fecha y motivo opcional.
+- Ciudadanía consulta solo el historial de sus incidencias; técnicos, solo el de sus trabajos asignados; operación puede consultar cualquier incidencia.
+- Los endpoints de historial nunca exponen el email del actor, únicamente su nombre visible y rol.
+- Las timelines se actualizan después de cada comando de estado mediante invalidación de TanStack Query.
+
 ## Problemas habituales
 
 ### El puerto 5432 está ocupado
