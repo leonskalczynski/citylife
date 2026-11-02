@@ -25,15 +25,15 @@ const incident: Incident = {
 describe("IncidentLocationCard", () => {
   afterEach(cleanup);
 
-  it("explica cuándo la incidencia no tiene ubicación", () => {
-    render(<IncidentLocationCard incident={{ ...incident, latitude: null, longitude: null }} />);
-    expect(screen.getByText("Esta incidencia no tiene una posición marcada en el mapa.")).toBeInTheDocument();
+  it("evita repetir la dirección cuando no hay un mapa que mostrar", () => {
+    const { container } = render(<IncidentLocationCard incident={{ ...incident, latitude: null, longitude: null }} />);
+    expect(container).toBeEmptyDOMElement();
   });
 
-  it("muestra el mapa y las coordenadas cuando existen", () => {
+  it("muestra el mapa sin exponer coordenadas técnicas", () => {
     render(<IncidentLocationCard incident={{ ...incident, latitude: 40.41691, longitude: -3.70352 }} />);
     expect(screen.getByLabelText("Mapa de Farola apagada")).toBeInTheDocument();
-    expect(screen.getByText("40.41691, -3.70352")).toBeInTheDocument();
+    expect(screen.queryByText("40.41691, -3.70352")).not.toBeInTheDocument();
     expect(screen.getByText("Plaza Mayor, 3 · Centro")).toBeInTheDocument();
   });
 });

@@ -22,6 +22,7 @@ export function OperationsIncidentsPage() {
   const [draft, setDraft] = useState<Record<string, string>>(() => draftFromFilters(filtersFromSearch(searchParams)));
   const [filters, setFilters] = useState<OperationFilters>(() => filtersFromSearch(searchParams));
   const [view, setView] = useState<"list" | "map">("list");
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const incidents = useQuery({
     queryKey: ["operation-incidents", filters],
     queryFn: ({ signal }) => getOperationIncidents(token!, filters, signal),
@@ -57,6 +58,8 @@ export function OperationsIncidentsPage() {
     });
   };
   const mapPoints = incidents.data ? toMapPoints(incidents.data.content) : [];
+  const unlocatedIncidents = incidents.data?.content.filter((incident) => incident.latitude == null || incident.longitude == null) ?? [];
+  const hasAppliedFilters = Boolean(filters.search || filters.status || filters.priority || filters.categoryId || filters.departmentId || filters.district || filters.withoutTechnician);
 
   return (
     <AppShell>
@@ -66,22 +69,23 @@ export function OperationsIncidentsPage() {
           <div className="flex items-center gap-3">
             {incidents.data && <p className="text-sm text-[var(--muted)]">{incidents.data.totalElements} incidencias</p>}
             <div className="flex gap-1" aria-label="Vista de incidencias">
-              <Button type="button" className="h-9 px-3" variant={view === "list" ? "default" : "ghost"} onClick={() => setView("list")}><List className="mr-2 size-4" />Lista</Button>
-              <Button type="button" className="h-9 px-3" variant={view === "map" ? "default" : "ghost"} onClick={() => setView("map")}><MapIcon className="mr-2 size-4" />Mapa</Button>
+              <Button type="button" className="px-3" variant={view === "list" ? "default" : "ghost"} aria-pressed={view === "list"} onClick={() => setView("list")}><List className="mr-2 size-4" />Lista</Button>
+              <Button type="button" className="px-3" variant={view === "map" ? "default" : "ghost"} aria-pressed={view === "map"} onClick={() => setView("map")}><MapIcon className="mr-2 size-4" />Mapa</Button>
             </div>
           </div>
         </div>
 
         <Card className="mt-8">
           <CardContent className="py-5">
-            <form className="grid gap-4 lg:grid-cols-6" onSubmit={applyFilters}>
+            <Button type="button" variant="outline" className="w-full md:hidden" aria-expanded={filtersOpen} aria-controls="operation-filters" onClick={() => setFiltersOpen((value) => !value)}><Filter className="mr-2 size-4" />{filtersOpen ? "Ocultar filtros" : "Mostrar filtros"}{hasAppliedFilters ? " · activos" : ""}</Button>
+            <form id="operation-filters" className={`${filtersOpen ? "grid" : "hidden"} mt-4 gap-4 md:grid md:mt-0 lg:grid-cols-6`} onSubmit={applyFilters}>
               <div className="lg:col-span-2"><Label htmlFor="search">Buscar</Label><div className="relative mt-2"><Search className="absolute left-3 top-3.5 size-4 text-[var(--muted)]" /><Input id="search" className="pl-9" placeholder="Título o descripción" value={draft.search ?? ""} onChange={(e) => setDraft({ ...draft, search: e.target.value })} /></div></div>
-              <FilterSelect label="Estado" value={draft.status} onChange={(value) => setDraft({ ...draft, status: value })} options={["REPORTED", "VALIDATED", "REJECTED", "ASSIGNED", "IN_PROGRESS", "RESOLVED", "REOPENED", "CLOSED"]} />
+              <FilterSelect label="Estado" value={draft.status} onChange={(value) => setDraft({ ...draft, status: value })} options={["REPORTED", "VALIDATED", "REJECTED", "ASSIGNED", "IN_PROGRESS", "RESOLVED"]} />
               <FilterSelect label="Prioridad" value={draft.priority} onChange={(value) => setDraft({ ...draft, priority: value })} options={["LOW", "NORMAL", "HIGH", "URGENT"]} />
               <div><Label htmlFor="category">Categoría</Label><Select id="category" className="mt-2" value={draft.categoryId ?? ""} onChange={(e) => setDraft({ ...draft, categoryId: e.target.value })}><option value="">Todas</option>{categories.data?.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</Select></div>
               <div><Label htmlFor="department">Departamento</Label><Select id="department" className="mt-2" value={draft.departmentId ?? ""} onChange={(e) => setDraft({ ...draft, departmentId: e.target.value })}><option value="">Todos</option>{departments.data?.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</Select></div>
               <div className="lg:col-span-2"><Label htmlFor="district">Distrito</Label><Input id="district" className="mt-2" value={draft.district ?? ""} onChange={(e) => setDraft({ ...draft, district: e.target.value })} /></div>
-              <div className="flex flex-wrap items-end gap-2 lg:col-span-4"><Button type="submit"><Filter className="mr-2 size-4" />Aplicar filtros</Button><Button type="button" variant={draft.withoutTechnician === "true" ? "default" : "outline"} onClick={() => setDraft({ ...draft, withoutTechnician: draft.withoutTechnician === "true" ? "" : "true" })}>Sin técnico</Button><Button type="button" variant="ghost" onClick={() => { setDraft({}); commitFilters({ page: 0, size: 10 }); }}>Limpiar</Button></div>
+              <div className="flex flex-wrap items-end gap-2 lg:col-span-4"><Button type="submit"><Filter className="mr-2 size-4" />Aplicar filtros</Button><Button type="button" variant={draft.withoutTechnician === "true" ? "default" : "outline"} aria-pressed={draft.withoutTechnician === "true"} onClick={() => setDraft({ ...draft, withoutTechnician: draft.withoutTechnician === "true" ? "" : "true" })}>Sin técnico</Button>{hasAppliedFilters && <Button type="button" variant="ghost" onClick={() => { setDraft({}); commitFilters({ page: 0, size: 10 }); }}>Limpiar</Button>}</div>
             </form>
           </CardContent>
         </Card>
@@ -90,24 +94,27 @@ export function OperationsIncidentsPage() {
           {incidents.isLoading && <div className="p-10 text-center text-[var(--muted)]">Cargando incidencias…</div>}
           {incidents.isError && <div className="p-10 text-center text-[var(--danger)]">No se ha podido cargar la bandeja.</div>}
           {incidents.data?.content.length === 0 && <div className="p-12 text-center text-[var(--muted)]">No hay incidencias que coincidan con los filtros.</div>}
-          {incidents.data && incidents.data.content.length > 0 && (
-            <div className="overflow-x-auto">
+          {incidents.data && incidents.data.content.length > 0 && (<>
+            <div className="hidden overflow-x-auto md:block" role="region" aria-label="Tabla de incidencias" tabIndex={0}>
               <table className="w-full min-w-[850px] text-left text-sm">
-                <thead className="bg-[var(--surface-soft)] text-xs uppercase tracking-wider text-[var(--muted)]"><tr><th className="px-5 py-3 font-semibold">Incidencia</th><th className="px-5 py-3 font-semibold">Estado</th><th className="px-5 py-3 font-semibold">Prioridad</th><th className="px-5 py-3 font-semibold">Categoría</th><th className="px-5 py-3 font-semibold">Departamento</th><th className="px-5 py-3 font-semibold">Fecha</th><th className="px-5 py-3" /></tr></thead>
+                <thead className="bg-[var(--surface-soft)] text-xs uppercase tracking-wider text-[var(--muted)]"><tr><th className="px-5 py-3 font-semibold">Incidencia</th><th className="px-5 py-3 font-semibold">Estado</th><th className="px-5 py-3 font-semibold">Prioridad</th><th className="px-5 py-3 font-semibold">Categoría</th><th className="px-5 py-3 font-semibold">Departamento</th><th className="px-5 py-3 font-semibold">Fecha</th><th className="px-5 py-3 font-semibold">Acciones</th></tr></thead>
                 <tbody>{incidents.data.content.map((incident) => <tr key={incident.id} className="border-b-2 border-[var(--line)] transition-colors last:border-0 hover:bg-[var(--surface-soft)]"><td className="px-5 py-4"><p className="font-semibold text-[var(--ink)]">{incident.title}</p><p className="mt-1 text-xs text-[var(--muted)]">{incident.district || "Sin distrito"} · {incident.createdBy.displayName}</p></td><td className="px-5 py-4"><IncidentStatusBadge status={incident.status} /></td><td className="px-5 py-4 font-medium">{priorityLabel(incident.priority)}</td><td className="px-5 py-4 text-[var(--muted)]">{incident.category.name}</td><td className="px-5 py-4 text-[var(--muted)]">{incident.department?.name ?? "—"}</td><td className="px-5 py-4 text-[var(--muted)]">{formatDate(incident.createdAt)}</td><td className="px-5 py-4"><Link className="font-semibold text-[var(--accent-ink)] hover:underline" to={`/operations/incidents/${incident.id}`}>Revisar</Link></td></tr>)}</tbody>
               </table>
             </div>
-          )}
+            <div className="divide-y divide-[var(--line)] md:hidden">{incidents.data.content.map((incident) => <article key={incident.id} className="p-5"><div className="flex flex-wrap items-center justify-between gap-2"><IncidentStatusBadge status={incident.status} /><span className="text-xs font-semibold uppercase text-[var(--muted)]">{priorityLabel(incident.priority)}</span></div><h2 className="mt-3 text-base font-semibold">{incident.title}</h2><p className="mt-1 text-sm text-[var(--muted)]">{incident.category.name} · {incident.district || "Sin distrito"}</p><p className="mt-1 text-xs text-[var(--muted)]">{formatDate(incident.createdAt)}</p><Button asChild className="mt-4 w-full" variant="outline"><Link to={`/operations/incidents/${incident.id}`}>Revisar incidencia<ChevronRight className="ml-2 size-4" /></Link></Button></article>)}</div>
+          </>)}
         </Card>}
 
         {view === "map" && <Card className="mt-5"><CardContent className="py-5">
           {incidents.isLoading && <div className="p-10 text-center text-[var(--muted)]">Cargando incidencias…</div>}
           {incidents.isError && <div className="p-10 text-center text-[var(--danger)]">No se ha podido cargar el mapa.</div>}
           {incidents.data && mapPoints.length === 0 && <div className="p-12 text-center text-[var(--muted)]">Las incidencias de esta página no tienen coordenadas.</div>}
-          {mapPoints.length > 0 && <IncidentMap ariaLabel="Mapa de incidencias filtradas" points={mapPoints} fitAll className="h-[32rem]" />}
+          {incidents.data && <p className="mb-4 text-sm text-[var(--muted)]">Esta página muestra {mapPoints.length} de {incidents.data.content.length} incidencias en el mapa.{incidents.data.totalPages > 1 ? " El mapa corresponde a la página actual." : ""}</p>}
+          {mapPoints.length > 0 && <IncidentMap ariaLabel="Mapa de incidencias de la página actual" points={mapPoints} fitAll className="h-[32rem]" />}
+          {unlocatedIncidents.length > 0 && <div className="mt-5"><h2 className="font-semibold">Sin coordenadas ({unlocatedIncidents.length})</h2><ul className="mt-2 divide-y divide-[var(--line)]">{unlocatedIncidents.map((incident) => <li key={incident.id}><Link className="flex items-center justify-between gap-3 py-3 text-sm font-medium text-[var(--accent-ink)] hover:underline" to={`/operations/incidents/${incident.id}`}><span>{incident.title}</span><ChevronRight className="size-4" /></Link></li>)}</ul></div>}
         </CardContent></Card>}
 
-        {incidents.data && incidents.data.totalPages > 1 && <div className="mt-5 flex items-center justify-between"><p className="text-sm text-[var(--muted)]">Página {incidents.data.page + 1} de {incidents.data.totalPages}</p><div className="flex gap-2"><Button variant="outline" disabled={filters.page === 0} onClick={() => commitFilters({ ...filters, page: filters.page - 1 })}><ChevronLeft className="size-4" /></Button><Button variant="outline" disabled={filters.page + 1 >= incidents.data.totalPages} onClick={() => commitFilters({ ...filters, page: filters.page + 1 })}><ChevronRight className="size-4" /></Button></div></div>}
+        {incidents.data && incidents.data.totalPages > 1 && <nav className="mt-5 flex items-center justify-between" aria-label="Paginación"><p className="text-sm text-[var(--muted)]">Página {incidents.data.page + 1} de {incidents.data.totalPages}</p><div className="flex gap-2"><Button variant="outline" size="icon" aria-label="Página anterior" disabled={filters.page === 0} onClick={() => commitFilters({ ...filters, page: filters.page - 1 })}><ChevronLeft className="size-4" /></Button><Button variant="outline" size="icon" aria-label="Página siguiente" disabled={filters.page + 1 >= incidents.data.totalPages} onClick={() => commitFilters({ ...filters, page: filters.page + 1 })}><ChevronRight className="size-4" /></Button></div></nav>}
       </section>
     </AppShell>
   );
@@ -156,7 +163,8 @@ const filterLabels: Record<string, string> = {
 };
 
 function FilterSelect({ label, value, onChange, options }: { label: string; value?: string; onChange: (value: string) => void; options: string[] }) {
-  return <div><Label>{label}</Label><Select className="mt-2" value={value ?? ""} onChange={(event) => onChange(event.target.value)}><option value="">Todos</option>{options.map((option) => <option key={option} value={option}>{filterLabels[option] ?? option.replaceAll("_", " ")}</option>)}</Select></div>;
+  const id = `filter-${label.toLocaleLowerCase("es").replaceAll(" ", "-")}`;
+  return <div><Label htmlFor={id}>{label}</Label><Select id={id} className="mt-2" value={value ?? ""} onChange={(event) => onChange(event.target.value)}><option value="">Todos</option>{options.map((option) => <option key={option} value={option}>{filterLabels[option] ?? option.replaceAll("_", " ")}</option>)}</Select></div>;
 }
 
 function priorityLabel(priority: Priority) { return { LOW: "Baja", NORMAL: "Normal", HIGH: "Alta", URGENT: "Urgente" }[priority]; }

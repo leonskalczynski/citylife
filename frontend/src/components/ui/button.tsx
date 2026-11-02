@@ -14,9 +14,9 @@ const buttonVariants = cva(
         ghost: "text-[var(--ink)] hover:bg-[var(--surface-soft)]",
       },
       size: {
-        default: "h-9 px-4 py-2",
-        lg: "h-10 px-5",
-        icon: "size-9",
+        default: "h-10 px-4 py-2",
+        lg: "h-11 px-5",
+        icon: "size-10",
       },
     },
     defaultVariants: { variant: "default", size: "default" },

@@ -36,7 +36,7 @@ export function WorkPage() {
         )}
 
         {activeWork.length > 0 && <WorkSection title="Pendientes y en curso" incidents={activeWork} />}
-        {completedWork.length > 0 && <WorkSection title="Resueltos" incidents={completedWork} muted />}
+        {completedWork.length > 0 && <details className="mt-10" open={activeWork.length === 0}><summary className="cursor-pointer text-lg font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]">Trabajos resueltos ({completedWork.length})</summary><WorkSection title="" incidents={completedWork} muted /></details>}
       </section>
     </AppShell>
   );
@@ -45,8 +45,8 @@ export function WorkPage() {
 function WorkSection({ title, incidents, muted = false }: { title: string; incidents: Incident[]; muted?: boolean }) {
   return (
     <div className="mt-10">
-      <h2 className="text-lg font-semibold">{title}</h2>
-      <div className="mt-4 grid gap-4 md:grid-cols-2">
+      {title && <h2 className="text-lg font-semibold">{title}</h2>}
+      <div className={`${title ? "mt-4" : "mt-3"} grid gap-4 md:grid-cols-2`}>
         {incidents.map((incident) => (
           <Card key={incident.id} className={muted ? "bg-[var(--surface-soft)]" : ""}>
             <CardContent className="p-5">
@@ -54,7 +54,7 @@ function WorkSection({ title, incidents, muted = false }: { title: string; incid
               <h3 className="mt-4 text-lg font-semibold leading-6">{incident.title}</h3>
               <p className="mt-2 text-sm text-[var(--muted)]">{incident.category.name} · {incident.department?.name ?? "Sin departamento"}</p>
               {(incident.address || incident.district) && <p className="mt-3 flex items-center gap-2 text-sm text-[var(--muted)]"><MapPin className="size-4 shrink-0" />{[incident.address, incident.district].filter(Boolean).join(" · ")}</p>}
-              <Button asChild variant="outline" className="mt-5 w-full"><Link to={`/work/${incident.id}`}>Abrir trabajo<ArrowRight className="ml-2 size-4" /></Link></Button>
+              <Button asChild variant="outline" className="mt-5 w-full"><Link to={`/work/${incident.id}`}>{muted ? "Ver resolución" : "Abrir trabajo"}<ArrowRight className="ml-2 size-4" /></Link></Button>
             </CardContent>
           </Card>
         ))}

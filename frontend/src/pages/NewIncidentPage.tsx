@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, MapPin } from "lucide-react";
+import { cloneElement, type ReactElement } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router";
 import { z } from "zod";
@@ -76,11 +77,9 @@ export function NewIncidentPage() {
                 </Select>
               </Field>
 
-              <div className="rounded-2xl bg-[var(--surface-soft)] p-5">
-                <div className="mb-4 flex items-center gap-2">
-                  <MapPin className="size-5 text-[var(--muted)]" />
-                  <h3 className="font-semibold">Ubicación opcional</h3>
-                </div>
+              <details className="rounded-2xl bg-[var(--surface-soft)] p-5">
+                <summary className="flex cursor-pointer list-none items-center gap-2 font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"><MapPin className="size-5 text-[var(--muted)]" />Ubicación opcional</summary>
+                <p className="mb-4 mt-3 text-sm text-[var(--muted)]">Indica una dirección o coordenadas. Si usas el mapa, asegúrate de que coincida con la dirección escrita.</p>
                 <div className="grid gap-5 sm:grid-cols-2">
                   <Field label="Dirección" htmlFor="address" error={form.formState.errors.address?.message}>
                     <Input id="address" placeholder="Calle y número" {...form.register("address")} />
@@ -88,18 +87,21 @@ export function NewIncidentPage() {
                   <Field label="Distrito" htmlFor="district" error={form.formState.errors.district?.message}>
                     <Input id="district" placeholder="Ej. Centro" {...form.register("district")} />
                   </Field>
+                  <Field label="Latitud" htmlFor="latitude" error={form.formState.errors.latitude?.message}>
+                    <Input id="latitude" inputMode="decimal" placeholder="40.4168" {...form.register("latitude", { setValueAs: optionalNumber })} />
+                  </Field>
+                  <Field label="Longitud" htmlFor="longitude" error={form.formState.errors.longitude?.message}>
+                    <Input id="longitude" inputMode="decimal" placeholder="-3.7038" {...form.register("longitude", { setValueAs: optionalNumber })} />
+                  </Field>
                 </div>
-                <input type="hidden" {...form.register("latitude", { setValueAs: optionalNumber })} />
-                <input type="hidden" {...form.register("longitude", { setValueAs: optionalNumber })} />
+                <p className="mt-5 text-sm text-[var(--muted)]">También puedes hacer clic en el mapa, arrastrar el marcador o usar tu ubicación actual.</p>
                 <div className="mt-5"><IncidentLocationPicker value={position} onChange={setPosition} /></div>
-                {form.formState.errors.longitude?.message && <p className="mt-3 text-sm text-[var(--danger)]">{form.formState.errors.longitude.message}</p>}
-              </div>
+              </details>
 
               {categories.isError && <p role="alert" className="rounded-xl bg-[var(--danger-soft)] px-4 py-3 text-sm font-medium text-[var(--danger)]">No se han podido cargar las categorías.</p>}
               {apiError && <p role="alert" className="rounded-xl bg-[var(--danger-soft)] px-4 py-3 text-sm font-medium text-[var(--danger)]">{apiError}</p>}
 
-              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                <Button type="button" variant="outline" onClick={() => navigate("/my-incidents")}>Cancelar</Button>
+              <div className="flex justify-end">
                 <Button type="submit" disabled={mutation.isPending || categories.isError}>
                   {mutation.isPending ? "Enviando…" : "Reportar incidencia"}
                 </Button>
@@ -112,12 +114,14 @@ export function NewIncidentPage() {
   );
 }
 
-function Field({ label, htmlFor, error, children }: { label: string; htmlFor: string; error?: string; children: React.ReactNode }) {
+function Field({ label, htmlFor, error, children }: { label: string; htmlFor: string; error?: string; children: ReactElement<Record<string, unknown>> }) {
+  const errorId = `${htmlFor}-error`;
+  const control = cloneElement(children, { "aria-invalid": Boolean(error), "aria-describedby": error ? errorId : undefined, "aria-required": label.includes("*") });
   return (
     <div className="space-y-2">
       <Label htmlFor={htmlFor}>{label}</Label>
-      {children}
-      {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
+      {control}
+      {error && <p id={errorId} className="text-sm text-[var(--danger)]">{error}</p>}
     </div>
   );
 }

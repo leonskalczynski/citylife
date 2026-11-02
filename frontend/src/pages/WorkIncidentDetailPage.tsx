@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, CalendarDays, CheckCircle2, MapPin, Play, UserRound } from "lucide-react";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useParams } from "react-router";
 import { z } from "zod";
@@ -33,6 +33,9 @@ export function WorkIncidentDetailPage() {
   const attachmentsQuery = useQuery({ queryKey: ["work-incident-attachments", incidentId], queryFn: ({ signal }) => getWorkIncidentAttachments(token!, incidentId, signal) });
   const notesForm = useForm<NotesForm>({ resolver: zodResolver(workNotesSchema), defaultValues: { notes: "" } });
   const resolveForm = useForm<ResolveForm>({ resolver: zodResolver(resolveWorkSchema), defaultValues: { summary: "" } });
+  const [confirmStart, setConfirmStart] = useState(false);
+  const [confirmResolve, setConfirmResolve] = useState(false);
+  const [statusMessage, setStatusMessage] = useState("");
 
   useEffect(() => {
     if (incidentQuery.data) notesForm.reset({ notes: incidentQuery.data.technicianNotes ?? "" });
@@ -43,9 +46,9 @@ export function WorkIncidentDetailPage() {
     queryClient.invalidateQueries({ queryKey: ["assigned-work"] });
     queryClient.invalidateQueries({ queryKey: ["work-incident-history", incidentId] });
   };
-  const startMutation = useMutation({ mutationFn: () => startWork(token!, incidentId), onSuccess: updateIncident });
-  const notesMutation = useMutation({ mutationFn: (data: NotesForm) => updateWorkNotes(token!, incidentId, data.notes), onSuccess: updateIncident });
-  const resolveMutation = useMutation({ mutationFn: (data: ResolveForm) => resolveWork(token!, incidentId, data.summary), onSuccess: updateIncident });
+  const startMutation = useMutation({ mutationFn: () => startWork(token!, incidentId), onSuccess: (incident) => { updateIncident(incident); setConfirmStart(false); setStatusMessage("Intervención iniciada."); } });
+  const notesMutation = useMutation({ mutationFn: (data: NotesForm) => updateWorkNotes(token!, incidentId, data.notes), onSuccess: (incident) => { updateIncident(incident); notesForm.reset({ notes: incident.technicianNotes ?? "" }); setStatusMessage("Notas guardadas."); } });
+  const resolveMutation = useMutation({ mutationFn: (data: ResolveForm) => resolveWork(token!, incidentId, data.summary), onSuccess: (incident) => { updateIncident(incident); setConfirmResolve(false); setStatusMessage("Incidencia marcada como resuelta."); } });
   const attachmentMutation = useMutation({ mutationFn: (file: File) => uploadWorkIncidentAttachment(token!, incidentId, file), onSuccess: () => queryClient.invalidateQueries({ queryKey: ["work-incident-attachments", incidentId] }) });
   const actionError = [startMutation.error, notesMutation.error, resolveMutation.error].find(Boolean);
 
@@ -63,25 +66,27 @@ export function WorkIncidentDetailPage() {
             </header>
 
             {actionError && <p role="alert" className="mt-6 rounded-xl bg-[var(--danger-soft)] px-4 py-3 text-sm font-medium text-[var(--danger)]">{actionError instanceof ApiClientError ? actionError.body.message : "No se ha podido completar la acción"}</p>}
+            {statusMessage && <p role="status" className="mt-6 rounded-xl bg-[var(--accent-soft)] px-4 py-3 text-sm font-medium text-[var(--accent-ink)]">{statusMessage}</p>}
 
             <div className="mt-8 grid gap-6 lg:grid-cols-[1.35fr_0.9fr]">
-              <div className="space-y-5">
+              <aside className="space-y-5 lg:order-last lg:sticky lg:top-24 lg:self-start">
+                {incidentQuery.data.status === "ASSIGNED" && <Card><CardHeader><h2 className="text-lg font-semibold">Comenzar intervención</h2></CardHeader><CardContent>{confirmStart ? <div><p className="text-sm font-medium">¿Confirmas que vas a iniciar este trabajo?</p><div className="mt-3 flex gap-2"><Button onClick={() => startMutation.mutate()} disabled={startMutation.isPending}>Confirmar inicio</Button><Button variant="ghost" onClick={() => setConfirmStart(false)}>Cancelar</Button></div></div> : <Button className="w-full" onClick={() => setConfirmStart(true)}><Play className="mr-2 size-4" />Iniciar trabajo</Button>}</CardContent></Card>}
+
+                {(incidentQuery.data.status === "ASSIGNED" || incidentQuery.data.status === "IN_PROGRESS") && <Card><CardHeader><h2 className="text-lg font-semibold">Notas de intervención</h2></CardHeader><CardContent><form className="space-y-3" onSubmit={notesForm.handleSubmit((data) => notesMutation.mutate(data))}><Label htmlFor="notes">Notas</Label><Textarea id="notes" className="min-h-36" placeholder="Estado encontrado, medidas provisionales, materiales necesarios…" aria-invalid={Boolean(notesForm.formState.errors.notes)} aria-describedby="notes-help notes-error" {...notesForm.register("notes")} /><p id="notes-help" className="text-xs text-[var(--muted)]">Máximo 2.000 caracteres.</p>{notesForm.formState.errors.notes && <p id="notes-error" className="text-sm text-[var(--danger)]">{notesForm.formState.errors.notes.message}</p>}<Button type="submit" variant="outline" className="w-full" disabled={notesMutation.isPending || !notesForm.formState.isDirty}>Guardar notas</Button></form></CardContent></Card>}
+
+                {incidentQuery.data.status === "IN_PROGRESS" && <Card><CardHeader><h2 className="text-lg font-semibold">Resolver incidencia</h2></CardHeader><CardContent><form className="space-y-3" onSubmit={resolveForm.handleSubmit((data) => confirmResolve ? resolveMutation.mutate(data) : setConfirmResolve(true))}><Label htmlFor="summary">Resumen de resolución</Label><Textarea id="summary" className="min-h-32" placeholder="Describe la reparación o actuación completada…" aria-invalid={Boolean(resolveForm.formState.errors.summary)} aria-describedby="summary-help summary-error" {...resolveForm.register("summary")} /><p id="summary-help" className="text-xs text-[var(--muted)]">Describe el resultado final; puedes reutilizar tus notas.</p>{resolveForm.formState.errors.summary && <p id="summary-error" className="text-sm text-[var(--danger)]">{resolveForm.formState.errors.summary.message}</p>}{confirmResolve ? <div className="rounded-[7px] bg-[var(--accent-soft)] p-3"><p className="text-sm font-medium">Revisa el resumen. Esta acción cerrará el trabajo.</p><div className="mt-3 flex gap-2"><Button type="submit" disabled={resolveMutation.isPending}>Confirmar resolución</Button><Button type="button" variant="ghost" onClick={() => setConfirmResolve(false)}>Cancelar</Button></div></div> : <Button type="submit" className="w-full">Revisar y resolver</Button>}</form></CardContent></Card>}
+              </aside>
+
+              <div className="space-y-5 lg:order-first">
                 <Card><CardHeader><h2 className="text-lg font-semibold">Descripción</h2></CardHeader><CardContent><p className="whitespace-pre-wrap leading-7 text-[var(--ink)]">{incidentQuery.data.description}</p></CardContent></Card>
                 <Card><CardHeader><h2 className="text-lg font-semibold">Datos del trabajo</h2></CardHeader><CardContent className="grid gap-5 sm:grid-cols-2"><Detail icon={<UserRound />} label="Departamento" value={incidentQuery.data.department?.name ?? "Sin departamento"} /><Detail icon={<CalendarDays />} label="Última actualización" value={formatDate(incidentQuery.data.updatedAt)} />{(incidentQuery.data.address || incidentQuery.data.district) && <Detail icon={<MapPin />} label="Ubicación" value={[incidentQuery.data.address, incidentQuery.data.district].filter(Boolean).join(" · ")} />}</CardContent></Card>
                 <IncidentLocationCard incident={incidentQuery.data} />
-                <IncidentAttachments attachments={attachmentsQuery.data} token={token!} isLoading={attachmentsQuery.isLoading} isError={attachmentsQuery.isError} canUpload isUploading={attachmentMutation.isPending} uploadError={attachmentMutation.error} onUpload={(file) => attachmentMutation.mutate(file)} />
+                <IncidentAttachments attachments={attachmentsQuery.data} token={token!} isLoading={attachmentsQuery.isLoading} isError={attachmentsQuery.isError} canUpload={incidentQuery.data.status === "ASSIGNED" || incidentQuery.data.status === "IN_PROGRESS"} isUploading={attachmentMutation.isPending} uploadError={attachmentMutation.error} onUpload={(file) => attachmentMutation.mutate(file)} />
                 {incidentQuery.data.technicianNotes && (incidentQuery.data.status === "RESOLVED" || incidentQuery.data.status === "CLOSED") && <Card><CardHeader><h2 className="text-lg font-semibold">Notas de intervención</h2></CardHeader><CardContent><p className="whitespace-pre-wrap leading-7 text-[var(--ink)]">{incidentQuery.data.technicianNotes}</p></CardContent></Card>}
                 {incidentQuery.data.resolutionSummary && <Card className="bg-[var(--accent-soft)]"><CardHeader><h2 className="flex items-center gap-2 text-lg font-semibold"><CheckCircle2 className="size-5 text-[var(--accent-ink)]" />Resolución</h2></CardHeader><CardContent><p className="whitespace-pre-wrap leading-7 text-[var(--ink)]">{incidentQuery.data.resolutionSummary}</p>{incidentQuery.data.resolvedAt && <p className="mt-3 text-sm text-[var(--muted)]">Resuelta el {formatDate(incidentQuery.data.resolvedAt)}</p>}</CardContent></Card>}
                 <IncidentTimeline changes={historyQuery.data} isLoading={historyQuery.isLoading} isError={historyQuery.isError} />
               </div>
 
-              <aside className="space-y-5">
-                {incidentQuery.data.status === "ASSIGNED" && <Card><CardHeader><h2 className="text-lg font-semibold">Comenzar intervención</h2></CardHeader><CardContent><Button className="w-full" onClick={() => startMutation.mutate()} disabled={startMutation.isPending}><Play className="mr-2 size-4" />Iniciar trabajo</Button></CardContent></Card>}
-
-                {(incidentQuery.data.status === "ASSIGNED" || incidentQuery.data.status === "IN_PROGRESS") && <Card><CardHeader><h2 className="text-lg font-semibold">Notas de intervención</h2></CardHeader><CardContent><form className="space-y-3" onSubmit={notesForm.handleSubmit((data) => notesMutation.mutate(data))}><Label htmlFor="notes">Notas</Label><Textarea id="notes" className="min-h-36" placeholder="Estado encontrado, medidas provisionales, materiales necesarios…" {...notesForm.register("notes")} />{notesForm.formState.errors.notes && <p className="text-sm text-[var(--danger)]">{notesForm.formState.errors.notes.message}</p>}<Button type="submit" variant="outline" className="w-full" disabled={notesMutation.isPending}>Guardar notas</Button></form></CardContent></Card>}
-
-                {incidentQuery.data.status === "IN_PROGRESS" && <Card><CardHeader><h2 className="text-lg font-semibold">Resolver incidencia</h2></CardHeader><CardContent><form className="space-y-3" onSubmit={resolveForm.handleSubmit((data) => resolveMutation.mutate(data))}><Label htmlFor="summary">Resolución</Label><Textarea id="summary" className="min-h-32" placeholder="Describe la reparación o actuación completada…" {...resolveForm.register("summary")} />{resolveForm.formState.errors.summary && <p className="text-sm text-[var(--danger)]">{resolveForm.formState.errors.summary.message}</p>}<Button type="submit" className="w-full" disabled={resolveMutation.isPending}>Marcar como resuelta</Button></form></CardContent></Card>}
-              </aside>
             </div>
           </>
         )}

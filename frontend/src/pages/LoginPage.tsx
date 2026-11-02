@@ -1,5 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
+import { Eye, EyeOff } from "lucide-react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, Navigate, useLocation, useNavigate } from "react-router";
 import { z } from "zod";
@@ -21,6 +23,7 @@ export function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const form = useForm<LoginForm>({ resolver: zodResolver(loginSchema) });
+  const [showPassword, setShowPassword] = useState(false);
   const mutation = useMutation({
     mutationFn: login,
     onSuccess: (response) => {
@@ -45,14 +48,14 @@ export function LoginPage() {
         <CardContent>
           <form className="space-y-5" onSubmit={form.handleSubmit((data) => mutation.mutate(data))} noValidate>
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" autoComplete="email" {...form.register("email")} />
-              {form.formState.errors.email && <p className="text-sm text-[var(--danger)]">{form.formState.errors.email.message}</p>}
+              <Label htmlFor="email">Correo electrónico</Label>
+              <Input id="email" type="email" autoComplete="email" required aria-invalid={Boolean(form.formState.errors.email)} aria-describedby={form.formState.errors.email ? "email-error" : undefined} {...form.register("email")} />
+              {form.formState.errors.email && <p id="email-error" className="text-sm text-[var(--danger)]">{form.formState.errors.email.message}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Contraseña</Label>
-              <Input id="password" type="password" autoComplete="current-password" {...form.register("password")} />
-              {form.formState.errors.password && <p className="text-sm text-[var(--danger)]">{form.formState.errors.password.message}</p>}
+              <div className="relative"><Input id="password" className="pr-12" type={showPassword ? "text" : "password"} autoComplete="current-password" required aria-invalid={Boolean(form.formState.errors.password)} aria-describedby={form.formState.errors.password ? "password-error" : undefined} {...form.register("password")} /><button type="button" className="absolute right-1.5 top-1.5 grid size-8 place-items-center rounded-[6px] text-[var(--muted)] hover:bg-[var(--surface-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]" aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"} onClick={() => setShowPassword((value) => !value)}>{showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}</button></div>
+              {form.formState.errors.password && <p id="password-error" className="text-sm text-[var(--danger)]">{form.formState.errors.password.message}</p>}
             </div>
             {errorMessage && <p role="alert" className="rounded-xl bg-[var(--danger-soft)] px-4 py-3 text-sm font-medium text-[var(--danger)]">{errorMessage}</p>}
             <Button className="w-full" size="lg" type="submit" disabled={mutation.isPending}>

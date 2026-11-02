@@ -67,14 +67,19 @@ const priorityColors: Record<string, string> = {
 
 export function DashboardPage() {
   const { token, user } = useAuth();
+  const hasOperationalDashboard = user?.role === "CITIZEN" || user?.role === "OPERATOR" || user?.role === "TECHNICIAN";
   const dashboardQuery = useQuery({
     queryKey: ["dashboard", user?.id],
     queryFn: ({ signal }) => getDashboard(token!, signal),
-    enabled: Boolean(token && user),
+    enabled: Boolean(token && user && hasOperationalDashboard),
   });
 
   const role = dashboardQuery.data?.scope ?? user?.role ?? "CITIZEN";
   const firstName = user?.displayName?.split(" ")[0];
+
+  if (user && !hasOperationalDashboard) {
+    return <RoleLanding role={user.role} firstName={firstName} />;
+  }
 
   return (
     <AppShell>
@@ -102,6 +107,24 @@ export function DashboardPage() {
   );
 }
 
+function RoleLanding({ role, firstName }: { role: string; firstName?: string }) {
+  const roleName = role === "ADMIN" ? "Administración" : "Análisis";
+  return (
+    <AppShell>
+      <section className="mx-auto max-w-4xl px-5 py-12 sm:px-6 sm:py-16">
+        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--muted)]">{roleName}</p>
+        <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Hola, {firstName || "equipo"}</h1>
+        <Card className="mt-8">
+          <CardContent className="py-10">
+            <h2 className="text-xl font-semibold">Tu cuenta está activa</h2>
+            <p className="mt-3 max-w-2xl leading-7 text-[var(--muted)]">Este rol no tiene tareas operativas asignadas en Citylife. Puedes consultar tu identidad y cerrar sesión desde el menú de usuario.</p>
+          </CardContent>
+        </Card>
+      </section>
+    </AppShell>
+  );
+}
+
 function DashboardContent({ dashboard, role }: { dashboard: Dashboard; role: string }) {
   const { indicators, pulse, resolution } = dashboard;
   const reviewCount = role === "TECHNICIAN" ? indicators.awaitingStart : indicators.awaitingValidation;
@@ -114,57 +137,30 @@ function DashboardContent({ dashboard, role }: { dashboard: Dashboard; role: str
     }
     return role === "TECHNICIAN" ? "/work" : "/my-incidents";
   };
+  const visibleActions = actionCards(role, indicators, listHref).filter((card) => card.count > 0);
 
   return (
     <>
       <CityPulseHero dashboard={dashboard} role={role} reviewCount={reviewCount} reviewLabel={reviewLabel} />
 
-      <DashboardSection index="02" title="Qué necesita acción" aside={<Link className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--accent-ink)] hover:underline" to={listHref()}>Ver todo <ArrowRight className="size-3.5" /></Link>}>
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {actionCards(role, indicators, listHref).map((card) => <ActionQueueCard key={card.label} {...card} />)}
-        </div>
+      <DashboardSection index="01" title={visibleActions.length > 0 ? "Qué necesita acción" : "Todo al día"} aside={<Link className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--accent-ink)] hover:underline" to={listHref()}>Ver {role === "TECHNICIAN" ? "trabajos" : "incidencias"} <ArrowRight className="size-3.5" /></Link>}>
+        {visibleActions.length > 0 ? <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{visibleActions.map((card) => <ActionQueueCard key={card.label} {...card} />)}</div> : <Card><CardContent className="flex items-center gap-3 py-6"><CheckCircle2 className="size-5 text-[var(--success)]" aria-hidden="true" /><p className="font-medium">No hay tareas pendientes en este momento.</p></CardContent></Card>}
       </DashboardSection>
 
-      <DashboardSection index="03" title="Rendimiento" aside={<span className="text-xs text-[var(--muted)]">Últimos 7 días</span>}>
-        <div className="grid gap-3 lg:grid-cols-3">
-          <ResolutionRateCard dashboard={dashboard} />
-          <ResolutionTimeCard resolution={resolution} />
-          <WeeklyActivityCard dashboard={dashboard} />
+      {role === "OPERATOR" && <details className="mt-10 rounded-[14px] border border-[var(--line)] bg-[var(--surface)] open:pb-2">
+        <summary className="cursor-pointer px-5 py-4 font-semibold focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-inset focus-visible:ring-[color-mix(in_srgb,var(--accent)_50%,transparent)]">Ver análisis operativo</summary>
+        <div className="border-t border-[var(--line)] px-5">
+          <DashboardSection index="02" title="Rendimiento" aside={<span className="text-xs text-[var(--muted)]">Últimos 7 días</span>}><div className="grid gap-3 lg:grid-cols-3"><ResolutionRateCard dashboard={dashboard} /><ResolutionTimeCard resolution={resolution} /><WeeklyActivityCard dashboard={dashboard} /></div></DashboardSection>
+          <DashboardSection index="03" title="Distribución" aside={<span className="text-xs text-[var(--muted)]">{dashboard.totalIncidents} {dashboard.totalIncidents === 1 ? "incidencia" : "incidencias"}</span>}>
+            <div className="grid gap-3 lg:grid-cols-3">
+              <DashboardDistribution title="Por estado" items={toDistributionItems(dashboard.byStatus, statusLabels, statusColors, (key) => listHref({ status: key }))} total={dashboard.totalIncidents} emptyMessage="Todavía no hay incidencias registradas." />
+              <DashboardDistribution title="Por prioridad" items={toDistributionItems(dashboard.byPriority, priorityLabels, priorityColors, (key) => listHref({ priority: key }))} total={dashboard.totalIncidents} emptyMessage="Todavía no hay prioridades que mostrar." />
+              <DashboardDistribution title="Por categoría" items={dashboard.byCategory.map((item) => ({ key: item.id, label: item.name, count: item.count, colorClass: "bg-[var(--accent)]", href: listHref({ categoryId: item.id }) }))} total={dashboard.totalIncidents} variant="bars" emptyMessage="Todavía no hay categorías con incidencias." />
+            </div>
+          </DashboardSection>
+          <DashboardSection index="04" title="Dónde ocurre" aside={<span className="text-xs text-[var(--muted)]">{pulse.mapPoints.length > 0 ? "Actividad geolocalizada" : "Sin ubicaciones"}</span>}><TerritoryPanel points={pulse.mapPoints} districts={pulse.byDistrict} incidentHref={incidentHref} districtHref={(district) => listHref({ district })} /></DashboardSection>
         </div>
-      </DashboardSection>
-
-      <DashboardSection index="04" title="Distribución" aside={<span className="text-xs text-[var(--muted)]">{dashboard.totalIncidents} {dashboard.totalIncidents === 1 ? "incidencia" : "incidencias"}</span>}>
-        <div className="grid gap-3 lg:grid-cols-3">
-          <DashboardDistribution
-            title="Por estado"
-            items={toDistributionItems(dashboard.byStatus, statusLabels, statusColors, (key) => listHref({ status: key }))}
-            total={dashboard.totalIncidents}
-            emptyMessage="Todavía no hay incidencias registradas."
-          />
-          <DashboardDistribution
-            title="Por prioridad"
-            items={toDistributionItems(dashboard.byPriority, priorityLabels, priorityColors, (key) => listHref({ priority: key }))}
-            total={dashboard.totalIncidents}
-            emptyMessage="Todavía no hay prioridades que mostrar."
-          />
-          <DashboardDistribution
-            title="Por categoría"
-            items={dashboard.byCategory.map((item) => ({ key: item.id, label: item.name, count: item.count, colorClass: "bg-[var(--accent)]", href: listHref({ categoryId: item.id }) }))}
-            total={dashboard.totalIncidents}
-            variant="bars"
-            emptyMessage="Todavía no hay categorías con incidencias."
-          />
-        </div>
-      </DashboardSection>
-
-      <DashboardSection index="05" title="Dónde ocurre" aside={<span className="text-xs text-[var(--muted)]">{pulse.mapPoints.length > 0 ? "Actividad geolocalizada" : "Sin ubicaciones"}</span>}>
-        <TerritoryPanel
-          points={pulse.mapPoints}
-          districts={pulse.byDistrict}
-          incidentHref={incidentHref}
-          districtHref={(district) => listHref({ district })}
-        />
-      </DashboardSection>
+      </details>}
     </>
   );
 }
@@ -177,8 +173,8 @@ function CityPulseHero({ dashboard, role, reviewCount, reviewLabel }: { dashboar
         <div className="flex flex-col justify-between gap-8 lg:flex-row lg:items-start">
           <div>
             <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
-              <span className="relative flex size-2"><span className="absolute inline-flex size-full animate-ping rounded-full bg-[var(--accent)] opacity-60" /><span className="relative inline-flex size-2 rounded-full bg-[var(--accent)]" /></span>
-              En vivo · {workspaceFor(role)}
+              <span className="size-2 rounded-full bg-[var(--accent)]" aria-hidden="true" />
+              Resumen actualizado · {workspaceFor(role)}
             </div>
             <div className="mt-5 flex flex-wrap items-end gap-x-4 gap-y-1">
               <span className="text-5xl font-semibold leading-none tracking-[-0.04em] tabular-nums sm:text-6xl">{pulse.activeIncidents}</span>
@@ -243,14 +239,12 @@ function actionCards(role: string, indicators: DashboardIndicators, listHref: (p
       { label: "Por iniciar", count: indicators.awaitingStart, context: "Asignadas pendientes de comenzar", href: listHref(), icon: <Clock3 className="size-5" />, accent: true },
       { label: "En curso", count: indicators.inProgress, context: "Intervenciones abiertas ahora", href: listHref(), icon: <TrendingUp className="size-5" /> },
       { label: "Urgentes abiertas", count: indicators.urgentOpen, context: "Prioridad máxima sin resolver", href: listHref(), icon: <CircleAlert className="size-5" />, accent: true },
-      { label: "Resueltas", count: indicators.resolved, context: "Trabajos completados", href: listHref(), icon: <CheckCircle2 className="size-5" /> },
     ];
   }
   return [
     { label: "Pendientes de revisión", count: indicators.awaitingValidation, context: "En espera de revisión municipal", href: listHref(), icon: <Inbox className="size-5" />, accent: true },
     { label: "En curso", count: indicators.activeWork, context: "Validadas o en intervención", href: listHref(), icon: <TrendingUp className="size-5" /> },
     { label: "Urgentes abiertas", count: indicators.urgentOpen, context: "Prioridad máxima sin resolver", href: listHref(), icon: <CircleAlert className="size-5" />, accent: true },
-    { label: "Resueltas", count: indicators.resolved, context: "Trabajos completados", href: listHref(), icon: <CheckCircle2 className="size-5" /> },
   ];
 }
 
@@ -389,7 +383,8 @@ function formatToday() {
 
 function DashboardSkeleton() {
   return (
-    <div className="mt-8 space-y-5" aria-label="Cargando panel">
+    <div className="mt-8 space-y-5" role="status" aria-label="Cargando panel">
+      <span className="sr-only">Cargando panel…</span>
       <div className="h-[28rem] animate-pulse rounded-2xl bg-[var(--surface)]" />
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {Array.from({ length: 4 }).map((_, index) => <div key={index} className="h-40 animate-pulse rounded-2xl bg-[var(--surface)]" />)}

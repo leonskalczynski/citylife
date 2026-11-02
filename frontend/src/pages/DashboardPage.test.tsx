@@ -92,7 +92,7 @@ describe("DashboardPage", () => {
     expect(screen.getByRole("link", { name: /Pendientes de validar/ })).toHaveAttribute("href", "/operations/incidents?status=REPORTED");
   });
 
-  it("adapta los indicadores al técnico y explica cuándo faltan muestras", async () => {
+  it("adapta los indicadores al técnico sin análisis operativos irrelevantes", async () => {
     sessionStorage.setItem("citylife.accessToken", "technician-token");
     mockApi("TECHNICIAN", {
       ...baseDashboard,
@@ -107,8 +107,8 @@ describe("DashboardPage", () => {
     expect(await screen.findByText("Tu jornada de campo, de un vistazo.")).toBeInTheDocument();
     expect(screen.getByText("Por iniciar")).toBeInTheDocument();
     expect(screen.getByText("Intervenciones abiertas ahora")).toBeInTheDocument();
-    expect(screen.getByText("Aún no hay datos suficientes")).toBeInTheDocument();
-    expect(screen.getByText(/2 de 3 resoluciones necesarias/)).toBeInTheDocument();
+    expect(screen.queryByText("Aún no hay datos suficientes")).not.toBeInTheDocument();
+    expect(screen.queryByText(/2 de 3 resoluciones necesarias/)).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Ver mis trabajos/ })).toHaveAttribute("href", "/work");
   });
 });

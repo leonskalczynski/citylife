@@ -14,7 +14,7 @@ const statusLabels: Record<string, string> = {
 };
 
 export function OperationalPulse({ events, incidentHref }: { events: DashboardEvent[]; incidentHref: (id: string) => string }) {
-  const ordered = [...events].sort((a, b) => +new Date(a.changedAt) - +new Date(b.changedAt));
+  const ordered = [...events].sort((a, b) => +new Date(b.changedAt) - +new Date(a.changedAt)).slice(0, 4);
 
   return (
     <div className="mt-8">
@@ -23,41 +23,7 @@ export function OperationalPulse({ events, incidentHref }: { events: DashboardEv
         <p className="text-xs text-[var(--muted)]">{ordered.length > 0 ? "Últimos movimientos" : "Sin actividad reciente"}</p>
       </div>
 
-      {ordered.length === 0 ? (
-        <div className="city-ruler mt-5 h-10 rounded-full bg-[var(--surface-soft)]" aria-hidden="true" />
-      ) : (
-        <div className="mt-5">
-          <div className="relative h-24">
-            <div className="city-ruler absolute inset-x-0 top-2 h-3 opacity-80" aria-hidden="true" />
-            <div className="absolute inset-x-0 top-[13px] h-0.5 bg-[var(--line-strong)]" aria-hidden="true" />
-            {ordered.map((event) => {
-              const span = Math.max(+new Date(ordered[ordered.length - 1].changedAt) - +new Date(ordered[0].changedAt), 1);
-              const position = 3 + ((+new Date(event.changedAt) - +new Date(ordered[0].changedAt)) / span) * 94;
-              const isComplete = event.status === "RESOLVED" || event.status === "CLOSED";
-              const isRejected = event.status === "REJECTED";
-              const isUrgent = event.priority === "URGENT" && !isComplete && !isRejected;
-              return (
-                <Link
-                  key={`${event.incidentId}-${event.changedAt}`}
-                  to={incidentHref(event.incidentId)}
-                  className="group absolute top-0 z-10 flex w-16 -translate-x-1/2 flex-col items-center"
-                  style={{ left: `${position}%` }}
-                  aria-label={`${event.title}, ${statusLabels[event.status]}, ${formatAxis(event.changedAt)}`}
-                  title={`${event.title} · ${statusLabels[event.status]} · ${event.categoryName}`}
-                >
-                  <span className={`size-3.5 rounded-full ring-4 ring-[var(--surface)] transition-transform group-hover:scale-125 ${isComplete ? "bg-[var(--success)]" : isRejected ? "bg-[var(--line-strong)]" : isUrgent ? "bg-[var(--ink)] ring-[var(--accent-soft-strong)]" : "bg-[var(--ink)]"}`} />
-                  <span className="mt-3 text-[10px] font-medium tabular-nums text-[var(--muted)]">{formatAxis(event.changedAt)}</span>
-                  <span className="pointer-events-none absolute top-7 z-20 hidden w-48 rounded-xl bg-[var(--ink)] p-3 text-left text-xs leading-5 text-[var(--canvas)] shadow-xl group-hover:block">
-                    <span className="block font-semibold">{event.title}</span>
-                    <span className="mt-1 block text-[var(--line)]">{event.categoryName} · {event.district}</span>
-                    <span className="mt-1 block text-[var(--line)]">{statusLabels[event.status]} · {event.actorName}</span>
-                  </span>
-                </Link>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      {ordered.length === 0 ? <p className="mt-4 rounded-[7px] bg-[var(--surface-soft)] px-4 py-3 text-sm text-[var(--muted)]">No hay movimientos recientes.</p> : <ul className="mt-4 grid gap-2 md:grid-cols-2">{ordered.map((event) => <li key={`${event.incidentId}-${event.changedAt}`}><Link to={incidentHref(event.incidentId)} className="flex items-center justify-between gap-4 rounded-[7px] border border-[var(--line)] px-4 py-3 transition-colors hover:bg-[var(--surface-soft)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[color-mix(in_srgb,var(--accent)_50%,transparent)]"><span className="min-w-0"><span className="block truncate text-sm font-semibold">{event.title}</span><span className="mt-1 block text-xs text-[var(--muted)]">{statusLabels[event.status]} · {event.categoryName}</span></span><time className="shrink-0 text-xs text-[var(--muted)]" dateTime={event.changedAt}>{formatAxis(event.changedAt)}</time></Link></li>)}</ul>}
     </div>
   );
 }

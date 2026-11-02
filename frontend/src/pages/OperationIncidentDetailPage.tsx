@@ -2,6 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, CalendarDays, MapPin, UserRound } from "lucide-react";
 import { useEffect, type ReactNode } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useParams } from "react-router";
 import { z } from "zod";
@@ -38,6 +39,8 @@ export function OperationIncidentDetailPage() {
   const rejectForm = useForm<RejectForm>({ resolver: zodResolver(rejectIncidentSchema), defaultValues: { reason: "" } });
   const priorityForm = useForm<PriorityForm>({ resolver: zodResolver(prioritySchema), defaultValues: { priority: "NORMAL" } });
   const assignmentForm = useForm<AssignmentForm>({ resolver: zodResolver(assignmentSchema), defaultValues: { departmentId: "", technicianId: "" } });
+  const [confirmValidation, setConfirmValidation] = useState(false);
+  const [statusMessage, setStatusMessage] = useState("");
 
   useEffect(() => {
     if (!incidentQuery.data) return;
@@ -50,10 +53,10 @@ export function OperationIncidentDetailPage() {
     queryClient.invalidateQueries({ queryKey: ["operation-incidents"] });
     queryClient.invalidateQueries({ queryKey: ["operation-incident-history", incidentId] });
   };
-  const validateMutation = useMutation({ mutationFn: () => validateIncident(token!, incidentId), onSuccess: updateIncident });
-  const rejectMutation = useMutation({ mutationFn: (data: RejectForm) => rejectIncident(token!, incidentId, data.reason), onSuccess: updateIncident });
-  const priorityMutation = useMutation({ mutationFn: (data: PriorityForm) => changeIncidentPriority(token!, incidentId, data.priority), onSuccess: updateIncident });
-  const assignmentMutation = useMutation({ mutationFn: (data: AssignmentForm) => assignIncident(token!, incidentId, data.departmentId, data.technicianId), onSuccess: updateIncident });
+  const validateMutation = useMutation({ mutationFn: () => validateIncident(token!, incidentId), onSuccess: (incident) => { updateIncident(incident); setStatusMessage("Incidencia validada."); setConfirmValidation(false); } });
+  const rejectMutation = useMutation({ mutationFn: (data: RejectForm) => rejectIncident(token!, incidentId, data.reason), onSuccess: (incident) => { updateIncident(incident); setStatusMessage("Incidencia rechazada."); } });
+  const priorityMutation = useMutation({ mutationFn: (data: PriorityForm) => changeIncidentPriority(token!, incidentId, data.priority), onSuccess: (incident) => { updateIncident(incident); priorityForm.reset({ priority: incident.priority }); setStatusMessage("Prioridad actualizada."); } });
+  const assignmentMutation = useMutation({ mutationFn: (data: AssignmentForm) => assignIncident(token!, incidentId, data.departmentId, data.technicianId), onSuccess: (incident) => { updateIncident(incident); assignmentForm.reset({ departmentId: incident.department?.id ?? "", technicianId: incident.assignedTo?.id ?? "" }); setStatusMessage("Asignación actualizada."); } });
   const actionError = [validateMutation.error, rejectMutation.error, priorityMutation.error, assignmentMutation.error].find(Boolean);
 
   return (
@@ -70,26 +73,28 @@ export function OperationIncidentDetailPage() {
             </div>
 
             {actionError && <p role="alert" className="mt-6 rounded-xl bg-[var(--danger-soft)] px-4 py-3 text-sm font-medium text-[var(--danger)]">{actionError instanceof ApiClientError ? actionError.body.message : "No se ha podido completar la acción"}</p>}
+            {statusMessage && <p role="status" className="mt-6 rounded-xl bg-[var(--accent-soft)] px-4 py-3 text-sm font-medium text-[var(--accent-ink)]">{statusMessage}</p>}
 
             <div className="mt-8 grid gap-6 lg:grid-cols-[1.4fr_0.9fr]">
-              <div className="space-y-5">
+              <aside className="space-y-5 lg:order-last lg:sticky lg:top-24 lg:self-start">
+                {incidentQuery.data.status === "REPORTED" && <Card><CardHeader><h2 className="text-lg font-semibold">Revisión</h2></CardHeader><CardContent className="space-y-4">{confirmValidation ? <div className="rounded-[7px] bg-[var(--accent-soft)] p-4"><p className="text-sm font-medium">¿Confirmas que el aviso es válido?</p><div className="mt-3 flex gap-2"><Button onClick={() => validateMutation.mutate()} disabled={validateMutation.isPending}>Confirmar</Button><Button variant="ghost" onClick={() => setConfirmValidation(false)}>Cancelar</Button></div></div> : <Button className="w-full" onClick={() => setConfirmValidation(true)}>Validar incidencia</Button>}<details className="border-t border-[var(--line)] pt-4"><summary className="cursor-pointer font-medium text-[var(--danger)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]">Rechazar incidencia</summary><form className="mt-4 space-y-3" onSubmit={rejectForm.handleSubmit((data) => rejectMutation.mutate(data))}><Label htmlFor="reason">Motivo del rechazo</Label><Textarea id="reason" className="min-h-24" aria-invalid={Boolean(rejectForm.formState.errors.reason)} aria-describedby={rejectForm.formState.errors.reason ? "reason-error" : undefined} {...rejectForm.register("reason")} />{rejectForm.formState.errors.reason && <p id="reason-error" className="text-sm text-[var(--danger)]">{rejectForm.formState.errors.reason.message}</p>}<Button type="submit" variant="outline" className="w-full" disabled={rejectMutation.isPending}>Confirmar rechazo</Button></form></details></CardContent></Card>}
+
+                {incidentQuery.data.status !== "REJECTED" && incidentQuery.data.status !== "CLOSED" && <Card><CardHeader><h2 className="text-lg font-semibold">Prioridad</h2></CardHeader><CardContent><form className="space-y-3" onSubmit={priorityForm.handleSubmit((data) => priorityMutation.mutate(data))}><Label htmlFor="priority">Nivel de atención</Label><Select id="priority" {...priorityForm.register("priority")}><option value="LOW">Baja</option><option value="NORMAL">Normal</option><option value="HIGH">Alta</option><option value="URGENT">Urgente</option></Select><Button type="submit" variant="outline" className="w-full" disabled={priorityMutation.isPending || !priorityForm.formState.isDirty}>Guardar prioridad</Button></form></CardContent></Card>}
+
+                {(incidentQuery.data.status === "VALIDATED" || incidentQuery.data.status === "ASSIGNED") && <Card><CardHeader><h2 className="text-lg font-semibold">Asignación</h2></CardHeader><CardContent><form className="space-y-4" onSubmit={assignmentForm.handleSubmit((data) => assignmentMutation.mutate(data))}><div className="space-y-2"><Label htmlFor="departmentId">Departamento</Label><Select id="departmentId" aria-invalid={Boolean(assignmentForm.formState.errors.departmentId)} aria-describedby={assignmentForm.formState.errors.departmentId ? "department-error" : undefined} {...assignmentForm.register("departmentId")}><option value="">Selecciona un departamento</option>{departments.data?.map((department) => <option key={department.id} value={department.id}>{department.name}</option>)}</Select>{assignmentForm.formState.errors.departmentId && <p id="department-error" className="text-sm text-[var(--danger)]">{assignmentForm.formState.errors.departmentId.message}</p>}</div><div className="space-y-2"><Label htmlFor="technicianId">Técnico</Label><Select id="technicianId" {...assignmentForm.register("technicianId")}><option value="">Sin técnico todavía</option>{technicians.data?.map((technician) => <option key={technician.id} value={technician.id}>{technician.displayName}</option>)}</Select></div><Button type="submit" className="w-full" disabled={assignmentMutation.isPending || !assignmentForm.formState.isDirty}>Guardar asignación</Button></form></CardContent></Card>}
+
+                {incidentQuery.data.status !== "VALIDATED" && incidentQuery.data.status !== "ASSIGNED" && <Card><CardContent className="space-y-3 py-5 text-sm"><InfoRow label="Departamento" value={incidentQuery.data.department?.name ?? "Sin asignar"} /><InfoRow label="Técnico" value={incidentQuery.data.assignedTo?.displayName ?? "Sin asignar"} /></CardContent></Card>}
+              </aside>
+
+              <div className="space-y-5 lg:order-first">
                 <Card><CardHeader><h2 className="text-lg font-semibold">Descripción</h2></CardHeader><CardContent><p className="whitespace-pre-wrap leading-7 text-[var(--ink)]">{incidentQuery.data.description}</p></CardContent></Card>
-                <Card><CardHeader><h2 className="text-lg font-semibold">Contexto</h2></CardHeader><CardContent className="grid gap-5 sm:grid-cols-2"><Detail icon={<UserRound />} label="Ciudadano" value={`${incidentQuery.data.createdBy.displayName} · ${incidentQuery.data.createdBy.email}`} /><Detail icon={<CalendarDays />} label="Reportada" value={formatDate(incidentQuery.data.createdAt)} />{(incidentQuery.data.address || incidentQuery.data.district) && <Detail icon={<MapPin />} label="Ubicación" value={[incidentQuery.data.address, incidentQuery.data.district].filter(Boolean).join(" · ")} />}</CardContent></Card>
+                <Card><CardHeader><h2 className="text-lg font-semibold">Contexto</h2></CardHeader><CardContent className="grid gap-5 sm:grid-cols-2"><Detail icon={<UserRound />} label="Ciudadano" value={incidentQuery.data.createdBy.displayName} /><Detail icon={<CalendarDays />} label="Reportada" value={formatDate(incidentQuery.data.createdAt)} />{(incidentQuery.data.address || incidentQuery.data.district) && <Detail icon={<MapPin />} label="Ubicación" value={[incidentQuery.data.address, incidentQuery.data.district].filter(Boolean).join(" · ")} />}</CardContent></Card>
                 <IncidentLocationCard incident={incidentQuery.data} />
                 <IncidentAttachments attachments={attachmentsQuery.data} token={token!} isLoading={attachmentsQuery.isLoading} isError={attachmentsQuery.isError} />
                 {incidentQuery.data.rejectionReason && <Card className="bg-[var(--danger-soft)]"><CardHeader><h2 className="text-lg font-semibold text-[var(--danger)]">Motivo del rechazo</h2></CardHeader><CardContent className="text-sm text-[var(--danger)]">{incidentQuery.data.rejectionReason}</CardContent></Card>}
                 <IncidentTimeline changes={historyQuery.data} isLoading={historyQuery.isLoading} isError={historyQuery.isError} />
               </div>
 
-              <aside className="space-y-5">
-                {incidentQuery.data.status === "REPORTED" && <Card><CardHeader><h2 className="text-lg font-semibold">Revisión</h2></CardHeader><CardContent className="space-y-5"><Button className="w-full" onClick={() => validateMutation.mutate()} disabled={validateMutation.isPending}>Validar incidencia</Button><form className="space-y-3 border-t-2 border-[var(--line)] pt-5" onSubmit={rejectForm.handleSubmit((data) => rejectMutation.mutate(data))}><Label htmlFor="reason">Motivo del rechazo</Label><Textarea id="reason" className="min-h-24" {...rejectForm.register("reason")} />{rejectForm.formState.errors.reason && <p className="text-sm text-[var(--danger)]">{rejectForm.formState.errors.reason.message}</p>}<Button type="submit" variant="outline" className="w-full" disabled={rejectMutation.isPending}>Rechazar incidencia</Button></form></CardContent></Card>}
-
-                {incidentQuery.data.status !== "REJECTED" && incidentQuery.data.status !== "CLOSED" && <Card><CardHeader><h2 className="text-lg font-semibold">Prioridad</h2></CardHeader><CardContent><form className="space-y-3" onSubmit={priorityForm.handleSubmit((data) => priorityMutation.mutate(data))}><Label htmlFor="priority">Nivel de atención</Label><Select id="priority" {...priorityForm.register("priority")}><option value="LOW">Baja</option><option value="NORMAL">Normal</option><option value="HIGH">Alta</option><option value="URGENT">Urgente</option></Select><Button type="submit" variant="outline" className="w-full" disabled={priorityMutation.isPending}>Guardar prioridad</Button></form></CardContent></Card>}
-
-                {(incidentQuery.data.status === "VALIDATED" || incidentQuery.data.status === "ASSIGNED") && <Card><CardHeader><h2 className="text-lg font-semibold">Asignación</h2></CardHeader><CardContent><form className="space-y-4" onSubmit={assignmentForm.handleSubmit((data) => assignmentMutation.mutate(data))}><div className="space-y-2"><Label htmlFor="departmentId">Departamento</Label><Select id="departmentId" {...assignmentForm.register("departmentId")}><option value="">Selecciona un departamento</option>{departments.data?.map((department) => <option key={department.id} value={department.id}>{department.name}</option>)}</Select>{assignmentForm.formState.errors.departmentId && <p className="text-sm text-[var(--danger)]">{assignmentForm.formState.errors.departmentId.message}</p>}</div><div className="space-y-2"><Label htmlFor="technicianId">Técnico</Label><Select id="technicianId" {...assignmentForm.register("technicianId")}><option value="">Sin técnico todavía</option>{technicians.data?.map((technician) => <option key={technician.id} value={technician.id}>{technician.displayName}</option>)}</Select></div><Button type="submit" className="w-full" disabled={assignmentMutation.isPending}>Guardar asignación</Button></form></CardContent></Card>}
-
-                <Card><CardContent className="space-y-3 py-5 text-sm"><InfoRow label="Departamento" value={incidentQuery.data.department?.name ?? "Sin asignar"} /><InfoRow label="Técnico" value={incidentQuery.data.assignedTo?.displayName ?? "Sin asignar"} /></CardContent></Card>
-              </aside>
             </div>
           </>
         )}

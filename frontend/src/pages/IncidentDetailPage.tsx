@@ -56,8 +56,9 @@ export function IncidentDetailPage() {
         {query.data && (
           <>
             <div className="mt-8">
-              <div className="flex flex-wrap items-center gap-2"><IncidentStatusBadge status={query.data.status} /><span className="text-sm text-[var(--muted)]">#{query.data.id.slice(0, 8)}</span></div>
+              <div className="flex flex-wrap items-center gap-2"><IncidentStatusBadge status={query.data.status} /></div>
               <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">{query.data.title}</h1>
+              <p className="mt-3 text-base font-medium text-[var(--muted)]">{stateCopy[query.data.status]}</p>
             </div>
 
             <div className="mt-8 grid gap-5 md:grid-cols-[1.6fr_1fr]">
@@ -75,13 +76,9 @@ export function IncidentDetailPage() {
               </Card>
             </div>
 
-            <div className="mt-5 rounded-2xl bg-[var(--accent-soft)] px-6 py-5">
-              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--accent-ink)]">Estado actual</p>
-              <p className="mt-1 text-xl font-semibold text-[var(--ink)]">{stateCopy[query.data.status]}</p>
-            </div>
             <div className="mt-5"><IncidentAttachments attachments={attachmentsQuery.data} token={token!} isLoading={attachmentsQuery.isLoading} isError={attachmentsQuery.isError} canUpload isUploading={uploadMutation.isPending} uploadError={uploadMutation.error} onUpload={(file) => uploadMutation.mutate(file)} /></div>
             <div className="mt-5"><IncidentLocationCard incident={query.data} /></div>
-            <div className="mt-5"><IncidentTimeline changes={historyQuery.data} isLoading={historyQuery.isLoading} isError={historyQuery.isError} /></div>
+            <div className="mt-5"><IncidentTimeline changes={historyQuery.data} isLoading={historyQuery.isLoading} isError={historyQuery.isError} audience="citizen" /></div>
           </>
         )}
       </section>

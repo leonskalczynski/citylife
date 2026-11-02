@@ -1,5 +1,5 @@
 import { ImagePlus, Images, LoaderCircle } from "lucide-react";
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -23,6 +23,7 @@ type IncidentAttachmentsProps = {
 export function IncidentAttachments({ attachments, token, isLoading, isError, canUpload = false, isUploading = false, uploadError, onUpload }: IncidentAttachmentsProps) {
   const inputId = useId();
   const [file, setFile] = useState<File>();
+  const wasUploading = useRef(false);
   const [validationError, setValidationError] = useState<string>();
   const uploadErrorMessage = uploadError ? (uploadError instanceof ApiClientError ? uploadError.body.message : "No se ha podido subir la imagen") : undefined;
 
@@ -43,8 +44,12 @@ export function IncidentAttachments({ attachments, token, isLoading, isError, ca
   const submit = () => {
     if (!file || !onUpload) return;
     onUpload(file);
-    setFile(undefined);
   };
+
+  useEffect(() => {
+    if (wasUploading.current && !isUploading && !uploadError) setFile(undefined);
+    wasUploading.current = isUploading;
+  }, [isUploading, uploadError]);
 
   return (
     <Card>
@@ -57,6 +62,7 @@ export function IncidentAttachments({ attachments, token, isLoading, isError, ca
       <CardContent className="space-y-5">
         {canUpload && (
           <div className="rounded-2xl bg-[var(--surface-soft)] p-4">
+            <p className="mb-3 text-xs text-[var(--muted)]">JPEG, PNG o WebP · máximo 5 MB.</p>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <input id={inputId} aria-label="Seleccionar imagen" type="file" accept={ACCEPTED_TYPES.join(",")} className="sr-only" onChange={(event) => chooseFile(event.target.files?.[0])} />
               <label htmlFor={inputId} className="inline-flex h-10 cursor-pointer items-center justify-center rounded-xl bg-[var(--accent-soft-strong)] px-4 text-sm font-semibold text-[var(--accent-ink)] transition-colors hover:bg-[var(--accent)]">Seleccionar imagen</label>
@@ -96,7 +102,7 @@ function AttachmentCard({ attachment, token }: { attachment: Attachment; token: 
   return (
     <article className="overflow-hidden rounded-2xl bg-[var(--surface-soft)]">
       <div className="aspect-[4/3] bg-[var(--line)]">
-        {source ? <a href={source} target="_blank" rel="noreferrer"><img src={source} alt={attachment.originalFileName} className="h-full w-full object-cover" /></a> : <div className="flex h-full items-center justify-center text-sm text-[var(--muted)]">{failed ? "Vista no disponible" : "Cargando imagen…"}</div>}
+        {source ? <a href={source} target="_blank" rel="noreferrer" aria-label={`Abrir ${attachment.originalFileName} en una pestaña nueva`}><img src={source} alt={attachment.originalFileName} className="h-full w-full object-cover" /></a> : <div className="flex h-full items-center justify-center text-sm text-[var(--muted)]">{failed ? "Vista no disponible" : "Cargando imagen…"}</div>}
       </div>
       <div className="p-4"><p className="truncate text-sm font-semibold" title={attachment.originalFileName}>{attachment.originalFileName}</p><p className="mt-1 text-xs text-[var(--muted)]">{attachment.uploadedBy.displayName} · {formatBytes(attachment.sizeBytes)}</p><p className="mt-1 text-xs text-[var(--muted)]">{formatDate(attachment.createdAt)}</p></div>
     </article>

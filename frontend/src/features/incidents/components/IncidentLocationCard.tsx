@@ -8,6 +8,7 @@ export function IncidentLocationCard({ incident }: { incident: Incident }) {
   const latitude = incident.latitude;
   const longitude = incident.longitude;
   if (latitude == null || longitude == null) {
+    if (incident.address || incident.district) return null;
     return (
       <Card>
         <CardContent className="flex items-start gap-3 py-5 text-sm text-[var(--muted)]">
@@ -31,10 +32,8 @@ export function IncidentLocationCard({ incident }: { incident: Incident }) {
           points={[{ id: incident.id, label: incident.title, latitude, longitude }]}
           className="h-72"
         />
-        <p className="text-xs text-[var(--muted)]">{formatCoordinate(latitude)}, {formatCoordinate(longitude)}</p>
       </CardContent>
     </Card>
   );
 }
 
-function formatCoordinate(value: number) { return value.toFixed(5); }

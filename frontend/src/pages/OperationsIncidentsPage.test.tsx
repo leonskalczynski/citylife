@@ -54,9 +54,11 @@ describe("OperationsIncidentsPage", () => {
       </QueryClientProvider>,
     );
 
-    expect(await screen.findByText("Farola apagada")).toBeInTheDocument();
+    expect((await screen.findAllByText("Farola apagada")).length).toBeGreaterThan(0);
     expect(screen.getByText("1 incidencias")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Revisar" })).toHaveAttribute("href", "/operations/incidents/incident-id");
+    expect(screen.getAllByRole("link", { name: "Revisar" })).toEqual(
+      expect.arrayContaining([expect.objectContaining({ href: expect.stringContaining("/operations/incidents/incident-id") })]),
+    );
 
     fireEvent.click(screen.getByRole("button", { name: "Mapa" }));
     expect(await screen.findByText("Las incidencias de esta página no tienen coordenadas.")).toBeInTheDocument();

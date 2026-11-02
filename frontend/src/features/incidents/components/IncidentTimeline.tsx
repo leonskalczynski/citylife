@@ -22,7 +22,7 @@ const roleLabels: Record<string, string> = {
   ANALYST: "Análisis",
 };
 
-export function IncidentTimeline({ changes, isLoading, isError }: { changes?: IncidentStatusChange[]; isLoading: boolean; isError: boolean }) {
+export function IncidentTimeline({ changes, isLoading, isError, audience = "staff" }: { changes?: IncidentStatusChange[]; isLoading: boolean; isError: boolean; audience?: "citizen" | "staff" }) {
   return (
     <Card>
       <CardHeader>
@@ -42,7 +42,7 @@ export function IncidentTimeline({ changes, isLoading, isError }: { changes?: In
                   <span className={`relative z-10 mt-1 size-3 rounded-full border-2 ${isLatest ? "border-[var(--accent-ink)] bg-[var(--accent)]" : "border-[var(--line-strong)] bg-[var(--surface)]"}`} aria-hidden="true" />
                   <div>
                     <div className="flex flex-col justify-between gap-1 sm:flex-row sm:items-baseline"><p className="font-semibold text-[var(--ink)]">{statusLabels[change.newStatus]}</p><time className="text-xs text-[var(--muted)]" dateTime={change.changedAt}>{formatDate(change.changedAt)}</time></div>
-                    <p className="mt-1 text-sm text-[var(--muted)]">{change.changedBy.displayName} · {roleLabels[change.changedBy.role] ?? change.changedBy.role}</p>
+                    {audience === "staff" && <p className="mt-1 text-sm text-[var(--muted)]">{change.changedBy.displayName} · {roleLabels[change.changedBy.role] ?? change.changedBy.role}</p>}
                     {change.reason && <p className="mt-2 rounded-xl bg-[var(--surface-soft)] px-3 py-2 text-sm leading-6 text-[var(--ink)]">{change.reason}</p>}
                   </div>
                 </li>
