@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 export function Select({ className, ...props }: SelectHTMLAttributes<HTMLSelectElement>) {
   return (
     <select
-      className={cn("h-11 w-full rounded-xl border-2 border-[var(--line)] bg-[var(--surface)] px-3 text-sm text-[var(--ink)] outline-none transition focus:border-[var(--accent)] focus:ring-[3px] focus:ring-[color-mix(in_srgb,var(--accent)_25%,transparent)]", className)}
+      className={cn("h-9 w-full rounded-[7px] border border-[var(--line-strong)] bg-[var(--surface)] px-3 text-sm text-[var(--ink)] shadow-[0_1px_2px_oklch(0.218_0.012_275_/_0.04)] outline-none transition duration-150 focus:border-[var(--accent)] focus:ring-[3px] focus:ring-[color-mix(in_srgb,var(--accent)_50%,transparent)]", className)}
       {...props}
     />
   );

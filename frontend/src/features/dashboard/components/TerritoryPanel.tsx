@@ -34,7 +34,7 @@ export function TerritoryPanel({ points, districts, incidentHref, districtHref }
   const maxDistrict = Math.max(1, ...districts.map((item) => item.count));
 
   return (
-    <div className="overflow-hidden rounded-2xl bg-[var(--surface)]">
+    <div className="overflow-hidden rounded-[14px] border border-[var(--line)] bg-[var(--surface)]">
       <div className="flex flex-wrap items-center justify-between gap-3 p-5 pb-3">
         <p className="text-xs text-[var(--muted)]">{points.length > 0 ? `${points.length} ${points.length === 1 ? "ubicación" : "ubicaciones"} sobre el mapa` : "Sin coordenadas disponibles todavía"}</p>
         <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--surface-soft)] px-2.5 py-1 text-xs font-medium text-[var(--muted)]"><MapPin className="size-3.5" />{districts.length} {districts.length === 1 ? "distrito" : "distritos"}</span>

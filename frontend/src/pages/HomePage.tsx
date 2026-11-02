@@ -14,16 +14,20 @@ const capabilities = [
 export function HomePage() {
   return (
     <main className="min-h-screen bg-[var(--canvas)] text-[var(--ink)]">
-      <header className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-6 sm:px-6">
+      <header className="border-b border-[var(--line)] bg-[var(--surface)]">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-3 sm:px-6">
         <Brand />
         <div className="text-sm"><ApiStatus /></div>
+        </div>
       </header>
 
-      <section className="mx-auto max-w-6xl px-5 pb-16 pt-14 sm:px-6 sm:pb-24 sm:pt-24">
-        <h1 className="max-w-4xl text-[clamp(2.75rem,7vw,6rem)] font-semibold leading-[0.98] tracking-[-0.05em]">
-          Una ciudad mejor empieza por <span className="text-[var(--accent-ink)]">escuchar</span>.
+      <section className="mx-auto max-w-6xl px-5 pb-12 pt-16 sm:px-6 sm:pb-16 sm:pt-20">
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--muted)]">Gestión urbana colaborativa</p>
+        <h1 className="mt-4 max-w-3xl text-[clamp(2rem,5vw,3.75rem)] font-semibold leading-[1.06] tracking-[-0.035em]">
+          Una ciudad mejor empieza por <span className="text-[var(--accent)]">escuchar</span>.
         </h1>
-        <div className="mt-10">
+        <p className="mt-5 max-w-2xl text-sm leading-6 text-[var(--muted)]">Reporta incidencias, coordina la respuesta municipal y sigue cada resolución desde un único espacio de trabajo.</p>
+        <div className="mt-8">
           <Button size="lg" asChild>
             <Link to="/login">
               Acceder a Citylife <ArrowRight className="ml-2 size-4" />
@@ -34,11 +38,11 @@ export function HomePage() {
 
       <section className="mx-auto grid max-w-6xl gap-3 px-5 pb-20 sm:px-6 md:grid-cols-3">
         {capabilities.map(({ icon: Icon, title }) => (
-          <article key={title} className="flex items-center gap-4 rounded-2xl bg-[var(--surface)] px-6 py-5">
-            <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-[var(--accent-soft-strong)] text-[var(--accent-ink)]">
+          <article key={title} className="flex items-center gap-4 rounded-[14px] border border-[var(--line)] bg-[var(--surface)] px-6 py-5">
+            <span className="grid size-10 shrink-0 place-items-center rounded-[7px] bg-[var(--accent-soft)] text-[var(--accent-ink)]">
               <Icon className="size-5" aria-hidden="true" />
             </span>
-            <h2 className="text-lg font-semibold">{title}</h2>
+            <h2 className="text-base font-semibold">{title}</h2>
           </article>
         ))}
       </section>

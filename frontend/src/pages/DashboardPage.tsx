@@ -78,9 +78,9 @@ export function DashboardPage() {
 
   return (
     <AppShell>
-      <section className="mx-auto max-w-6xl px-5 py-10 sm:px-6 sm:py-14">
+      <section className="mx-auto max-w-6xl px-5 py-8 sm:px-6 sm:py-10">
         <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--muted)]">{formatToday()}</p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">{greetingFor(role, firstName)}</h1>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight">{greetingFor(role, firstName)}</h1>
         <p className="mt-1 text-sm text-[var(--muted)]">{heroLineFor(role)}</p>
 
         {dashboardQuery.isLoading && <DashboardSkeleton />}
@@ -181,7 +181,7 @@ function CityPulseHero({ dashboard, role, reviewCount, reviewLabel }: { dashboar
               En vivo · {workspaceFor(role)}
             </div>
             <div className="mt-5 flex flex-wrap items-end gap-x-4 gap-y-1">
-              <span className="text-7xl font-semibold leading-[0.88] tracking-[-0.07em] sm:text-8xl">{pulse.activeIncidents}</span>
+              <span className="text-5xl font-semibold leading-none tracking-[-0.04em] tabular-nums sm:text-6xl">{pulse.activeIncidents}</span>
               <div className="pb-1">
                 <p className="text-lg font-semibold">incidencias activas</p>
                 <p className="text-sm text-[var(--muted)]">{pulse.createdToday > 0 ? `${pulse.createdToday} ${pulse.createdToday === 1 ? "nueva" : "nuevas"} hoy` : "Sin nuevas hoy"} · {pulse.createdLast7Days} esta semana</p>
@@ -263,12 +263,12 @@ function ResolutionRateCard({ dashboard }: { dashboard: Dashboard }) {
   const delta = weeklyRate - previousRate;
 
   return (
-    <div className="flex flex-col rounded-2xl bg-[var(--surface)] p-5">
+    <div className="flex flex-col rounded-[14px] border border-[var(--line)] bg-[var(--surface)] p-5">
       <div className="flex items-center justify-between gap-3">
         <h3 className="text-sm font-semibold">Tasa de resolución</h3>
         <CheckCircle2 className="size-4 text-[var(--success)]" aria-hidden="true" />
       </div>
-      <p className="mt-5 text-5xl font-semibold leading-none tracking-[-0.05em] tabular-nums">{rate}%</p>
+      <p className="mt-5 text-4xl font-semibold leading-none tracking-[-0.04em] tabular-nums">{rate}%</p>
       <p className="mt-3 text-xs text-[var(--muted)]">{totalResolved} de {totalIncidents} {totalIncidents === 1 ? "incidencia cerrada" : "incidencias cerradas"}</p>
       <div className="mt-auto pt-6">
         <div className="h-2 overflow-hidden rounded-full bg-[var(--surface-soft)]" aria-hidden="true">
@@ -286,14 +286,14 @@ function ResolutionTimeCard({ resolution }: { resolution: Dashboard["resolution"
   const hasAverage = resolution.averageSeconds !== null;
   const remaining = Math.max(resolution.minimumSamples - resolution.sampleSize, 0);
   return (
-    <div className="flex flex-col rounded-2xl bg-[var(--surface)] p-5">
+    <div className="flex flex-col rounded-[14px] border border-[var(--line)] bg-[var(--surface)] p-5">
       <div className="flex items-center justify-between gap-3">
         <h3 className="text-sm font-semibold">Tiempo medio de resolución</h3>
         <Timer className="size-4 text-[var(--muted)]" aria-hidden="true" />
       </div>
       {hasAverage ? (
         <>
-          <p className="mt-5 text-5xl font-semibold leading-none tracking-[-0.05em] tabular-nums">{formatDuration(resolution.averageSeconds!)}</p>
+          <p className="mt-5 text-4xl font-semibold leading-none tracking-[-0.04em] tabular-nums">{formatDuration(resolution.averageSeconds!)}</p>
           <p className="mt-3 text-xs text-[var(--muted)]">Basado en {resolution.sampleSize} resoluciones</p>
           <div className="mt-auto pt-6">
             <div className="h-2 overflow-hidden rounded-full bg-[var(--surface-soft)]" aria-hidden="true">
@@ -323,7 +323,7 @@ function WeeklyActivityCard({ dashboard }: { dashboard: Dashboard }) {
   const { pulse } = dashboard;
   const delta = pulse.createdLast7Days - pulse.createdPrevious7Days;
   return (
-    <div className="flex flex-col rounded-2xl bg-[var(--surface)] p-5">
+    <div className="flex flex-col rounded-[14px] border border-[var(--line)] bg-[var(--surface)] p-5">
       <div className="flex items-center justify-between gap-3">
         <h3 className="text-sm font-semibold">Actividad</h3>
         <div className="flex items-center gap-3 text-[10px] font-medium text-[var(--muted)]">

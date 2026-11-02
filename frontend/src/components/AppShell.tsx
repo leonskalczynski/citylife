@@ -41,12 +41,12 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <main className="min-h-screen bg-[var(--canvas)] text-[var(--ink)]">
-      <header className="sticky top-0 z-20 bg-[color-mix(in_srgb,var(--canvas)_90%,transparent)] backdrop-blur">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-4 sm:px-6">
+      <header className="sticky top-0 z-20 border-b border-[var(--line)] bg-[var(--surface)]">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-3 sm:px-6">
           <div className="flex items-center gap-4">
             <Brand to="/app" />
             {user && (
-              <span className="hidden items-center gap-2 rounded-full bg-[var(--surface)] px-3 py-1.5 text-xs font-semibold text-[var(--muted)] md:inline-flex">
+              <span className="hidden items-center gap-2 rounded-[7px] bg-[var(--surface-soft)] px-2.5 py-1.5 text-xs font-medium text-[var(--muted)] md:inline-flex">
                 <span className="size-1.5 rounded-full bg-[var(--accent)]" aria-hidden="true" />
                 {workspaceLabels[user.role] ?? roleLabels[user.role]}
               </span>
@@ -79,7 +79,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             {user && (
               <Link
                 to={notificationHref}
-                className="relative grid size-10 place-items-center rounded-xl text-[var(--ink)] transition-colors hover:bg-[var(--surface-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                className="relative grid size-9 place-items-center rounded-[7px] text-[var(--ink)] transition-colors hover:bg-[var(--surface-soft)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[color-mix(in_srgb,var(--accent)_50%,transparent)]"
                 aria-label={attention > 0 ? `${attention} avisos pendientes` : "Notificaciones"}
                 title={attention > 0 ? `${attention} avisos pendientes` : "Sin avisos pendientes"}
               >
@@ -120,13 +120,13 @@ function UserMenu({ user }: { user: CurrentUser }) {
     <div className="relative" ref={containerRef}>
       <button
         type="button"
-        className="flex items-center gap-2 rounded-xl p-1 text-left transition-colors hover:bg-[var(--surface-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+        className="flex items-center gap-2 rounded-[7px] p-1 text-left transition-colors hover:bg-[var(--surface-soft)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[color-mix(in_srgb,var(--accent)_50%,transparent)]"
         aria-expanded={open}
         aria-haspopup="menu"
         aria-label="Abrir menú de usuario"
         onClick={() => setOpen((value) => !value)}
       >
-        <span className="grid size-9 place-items-center rounded-full bg-[var(--ink)] text-xs font-bold text-[var(--canvas)]">{initials(user.displayName)}</span>
+        <span className="grid size-9 place-items-center rounded-full bg-[var(--accent-soft)] text-[11px] font-semibold tracking-wide text-[var(--accent-ink)] ring-2 ring-[var(--accent)]">{initials(user.displayName)}</span>
         <span className="hidden lg:block">
           <span className="block max-w-32 truncate text-sm font-semibold leading-5">{user.displayName}</span>
           <span className="block text-[11px] leading-4 text-[var(--muted)]">{roleLabels[user.role] ?? user.role}</span>
@@ -134,7 +134,7 @@ function UserMenu({ user }: { user: CurrentUser }) {
         <ChevronDown className="hidden size-3.5 text-[var(--muted)] lg:block" />
       </button>
       {open && (
-        <div className="absolute right-0 top-full z-30 mt-2 w-64 rounded-2xl bg-[var(--surface)] p-2 shadow-[0_18px_50px_-20px_rgba(29,30,26,0.35)]" role="menu">
+        <div className="absolute right-0 top-full z-30 mt-2 w-64 rounded-[7px] border border-[var(--line)] bg-[var(--surface-raised)] p-1 shadow-[var(--shadow-panel)]" role="menu">
           <div className="px-3 py-2">
             <p className="truncate text-sm font-semibold">{user.displayName}</p>
             <p className="mt-0.5 truncate text-xs text-[var(--muted)]">{user.email}</p>
@@ -143,7 +143,7 @@ function UserMenu({ user }: { user: CurrentUser }) {
           <div className="px-3 py-2 text-xs font-medium text-[var(--muted)]">{roleLabels[user.role] ?? user.role}</div>
           <button
             type="button"
-            className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-semibold text-[var(--ink)] transition-colors hover:bg-[var(--surface-soft)]"
+            className="flex w-full items-center gap-2 rounded-[4px] px-3 py-2 text-left text-sm font-medium text-[var(--ink)] transition-colors hover:bg-[var(--surface-soft)]"
             onClick={handleLogout}
             role="menuitem"
           >

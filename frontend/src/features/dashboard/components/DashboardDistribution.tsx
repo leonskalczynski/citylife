@@ -20,7 +20,7 @@ export function DashboardDistribution({ title, items, total, variant = "segmente
   const visible = items.filter((item) => item.count > 0);
 
   return (
-    <div className="rounded-2xl bg-[var(--surface)] p-5">
+    <div className="rounded-[14px] border border-[var(--line)] bg-[var(--surface)] p-5">
       <h3 className="text-sm font-semibold">{title}</h3>
       {visible.length === 0 ? (
         <p className="py-8 text-center text-xs text-[var(--muted)]">{emptyMessage}</p>
