@@ -4,7 +4,7 @@ Status: Accepted
 
 ## Context
 
-Citylife necesita relaciones, integridad referencial, consultas filtradas y un historial auditable.
+Urban Pulse necesita relaciones, integridad referencial, consultas filtradas y un historial auditable.
 
 ## Decision
 

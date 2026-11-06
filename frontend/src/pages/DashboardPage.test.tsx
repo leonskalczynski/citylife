@@ -76,13 +76,12 @@ describe("DashboardPage", () => {
   });
 
   it("muestra totales, desgloses y tiempo medio para operación", async () => {
-    sessionStorage.setItem("citylife.accessToken", "operator-token");
+    sessionStorage.setItem("urbanpulse.accessToken", "operator-token");
     mockApi("OPERATOR", baseDashboard);
 
     renderDashboard();
 
     expect(await screen.findByText("incidencias activas")).toBeInTheDocument();
-    expect(await screen.findByText("Así está la ciudad hoy.")).toBeInTheDocument();
     expect(screen.getByText("Pendientes de validar")).toBeInTheDocument();
     expect(screen.getByText("Urgentes abiertas")).toBeInTheDocument();
     expect(screen.getByText("9 h")).toBeInTheDocument();
@@ -93,7 +92,7 @@ describe("DashboardPage", () => {
   });
 
   it("adapta los indicadores al técnico sin análisis operativos irrelevantes", async () => {
-    sessionStorage.setItem("citylife.accessToken", "technician-token");
+    sessionStorage.setItem("urbanpulse.accessToken", "technician-token");
     mockApi("TECHNICIAN", {
       ...baseDashboard,
       scope: "TECHNICIAN",
@@ -104,9 +103,7 @@ describe("DashboardPage", () => {
     renderDashboard();
 
     expect(await screen.findByText("incidencias activas")).toBeInTheDocument();
-    expect(await screen.findByText("Tu jornada de campo, de un vistazo.")).toBeInTheDocument();
     expect(screen.getByText("Por iniciar")).toBeInTheDocument();
-    expect(screen.getByText("Intervenciones abiertas ahora")).toBeInTheDocument();
     expect(screen.queryByText("Aún no hay datos suficientes")).not.toBeInTheDocument();
     expect(screen.queryByText(/2 de 3 resoluciones necesarias/)).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Ver mis trabajos/ })).toHaveAttribute("href", "/work");

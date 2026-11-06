@@ -23,10 +23,11 @@ type IncidentMapProps = {
 
 const MADRID: [number, number] = [40.4168, -3.7038];
 const incidentIcon = L.divIcon({
-  className: "citylife-map-marker",
-  html: '<span aria-hidden="true"></span>',
-  iconAnchor: [14, 28],
-  popupAnchor: [0, -30],
+  className: "",
+  html: '<svg class="urban-pulse-map-pin" width="30" height="42" viewBox="0 0 24 34" aria-hidden="true" focusable="false"><path fill="#EA4335" d="M12 0C5.373 0 0 5.373 0 12c0 9 12 22 12 22s12-13 12-22C24 5.373 18.627 0 12 0Z"/><circle cx="12" cy="12" r="4.6" fill="#fff"/></svg>',
+  iconSize: [30, 42],
+  iconAnchor: [15, 42],
+  popupAnchor: [0, -40],
 });
 
 export function IncidentMap({ points = [], selected, onSelect, ariaLabel, className = "h-80", fitAll = false }: IncidentMapProps) {

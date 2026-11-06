@@ -1,4 +1,4 @@
-const TOKEN_KEY = "citylife.accessToken";
+const TOKEN_KEY = "urbanpulse.accessToken";
 
 export function getStoredToken() {
   return sessionStorage.getItem(TOKEN_KEY);

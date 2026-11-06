@@ -65,7 +65,6 @@ export function RegisterPage() {
             <Button className="w-full" size="lg" type="submit" disabled={mutation.isPending}>
               {mutation.isPending ? "Creando cuenta…" : "Crear cuenta"}
             </Button>
-            <p className="text-xs leading-5 text-[var(--muted)]">Usaremos tus datos para identificar tus avisos y comunicar su progreso dentro de Citylife.</p>
           </form>
           <p className="mt-6 text-center text-sm text-[var(--muted)]">
             ¿Ya tienes cuenta? <Link className="font-semibold text-[var(--accent-ink)] hover:underline" to="/login">Inicia sesión</Link>

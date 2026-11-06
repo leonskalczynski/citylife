@@ -13,7 +13,7 @@ describe("WorkPage", () => {
   });
 
   it("muestra únicamente los trabajos asignados recibidos del backend", async () => {
-    sessionStorage.setItem("citylife.accessToken", "technician-token");
+    sessionStorage.setItem("urbanpulse.accessToken", "technician-token");
     vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       const body = url.includes("/api/users/me")

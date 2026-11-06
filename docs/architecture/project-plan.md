@@ -1,9 +1,9 @@
-# Propuesta técnica de Citylife
+# Propuesta técnica de Urban Pulse
 
 ## Estructura del proyecto
 
 ```text
-citylife/
+urban-pulse/
 ├── backend/                 # Spring Boot, organizado por funcionalidad
 ├── frontend/                # React, organizado por feature
 ├── docs/

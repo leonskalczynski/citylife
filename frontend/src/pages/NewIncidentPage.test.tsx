@@ -14,7 +14,7 @@ describe("NewIncidentPage", () => {
   });
 
   it("valida los campos obligatorios antes de enviar", async () => {
-    sessionStorage.setItem("citylife.accessToken", "test-token");
+    sessionStorage.setItem("urbanpulse.accessToken", "test-token");
     vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       const body = url.includes("/api/categories")

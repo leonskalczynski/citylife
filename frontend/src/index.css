@@ -30,7 +30,7 @@
   --warning: oklch(0.62 0.14 70);
   --danger: oklch(0.552 0.201 26);
   --danger-soft: oklch(0.97 0.025 26);
-  --brand: #80ff52;
+  --icon-accent: var(--accent);
   --shadow-panel: 0 1px 2px oklch(0.218 0.012 275 / 0.06), 0 8px 24px oklch(0.218 0.012 275 / 0.08);
   --shadow-raised: 0 1px 2px oklch(0.218 0.012 275 / 0.05), 0 2px 8px oklch(0.218 0.012 275 / 0.06);
 }
@@ -40,6 +40,10 @@ html { background: var(--canvas); }
 body { margin: 0; min-width: 320px; min-height: 100vh; background: var(--canvas); font-size: 14px; line-height: 1.5; }
 button, input, select, textarea { font: inherit; }
 button, a { -webkit-tap-highlight-color: transparent; }
+a, button, [role="button"], summary, label[for], select, input[type="checkbox"], input[type="radio"] { cursor: pointer; }
+button:disabled, [aria-disabled="true"] { cursor: not-allowed; }
+svg.lucide { color: var(--icon-accent); }
+[data-variant="default"] svg.lucide { color: currentColor; }
 ::selection { background: var(--accent-soft); color: var(--accent-ink); }
 :focus-visible { outline-color: var(--accent); }
 
@@ -49,8 +53,8 @@ button, a { -webkit-tap-highlight-color: transparent; }
 *::-webkit-scrollbar-thumb { border: 2px solid transparent; border-radius: 999px; background: color-mix(in srgb, var(--ink) 18%, transparent); background-clip: padding-box; }
 *::-webkit-scrollbar-thumb:hover { background-color: color-mix(in srgb, var(--ink) 28%, transparent); }
 
-.citylife-map-marker { width: 28px !important; height: 28px !important; border: 3px solid var(--surface); border-radius: 50% 50% 50% 0; background: var(--accent); box-shadow: var(--shadow-raised); transform: rotate(-45deg); }
-.citylife-map-marker span { display: block; width: 8px; height: 8px; margin: 7px; border-radius: 50%; background: var(--accent-contrast); }
+.urban-pulse-map-pin { filter: drop-shadow(0 2px 3px rgb(0 0 0 / 30%)); }
+.leaflet-marker-icon { cursor: pointer; }
 .city-grid { background: var(--surface); }
 .city-ruler { background: var(--surface-soft); }
 .leaflet-container { font-family: inherit; }

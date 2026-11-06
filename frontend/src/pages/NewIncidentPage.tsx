@@ -79,7 +79,6 @@ export function NewIncidentPage() {
 
               <details className="rounded-2xl bg-[var(--surface-soft)] p-5">
                 <summary className="flex cursor-pointer list-none items-center gap-2 font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"><MapPin className="size-5 text-[var(--muted)]" />Ubicación opcional</summary>
-                <p className="mb-4 mt-3 text-sm text-[var(--muted)]">Indica una dirección o coordenadas. Si usas el mapa, asegúrate de que coincida con la dirección escrita.</p>
                 <div className="grid gap-5 sm:grid-cols-2">
                   <Field label="Dirección" htmlFor="address" error={form.formState.errors.address?.message}>
                     <Input id="address" placeholder="Calle y número" {...form.register("address")} />
@@ -94,7 +93,6 @@ export function NewIncidentPage() {
                     <Input id="longitude" inputMode="decimal" placeholder="-3.7038" {...form.register("longitude", { setValueAs: optionalNumber })} />
                   </Field>
                 </div>
-                <p className="mt-5 text-sm text-[var(--muted)]">También puedes hacer clic en el mapa, arrastrar el marcador o usar tu ubicación actual.</p>
                 <div className="mt-5"><IncidentLocationPicker value={position} onChange={setPosition} /></div>
               </details>
 

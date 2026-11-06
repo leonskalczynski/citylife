@@ -2,7 +2,7 @@
 
 ```mermaid
 C4Container
-  title Contenedores de Citylife
+  title Contenedores de Urban Pulse
   Person(user, "Usuario", "Ciudadano, operador o técnico")
   Container(spa, "Aplicación web", "React, TypeScript", "Interfaz responsive")
   Container(api, "API", "Spring Boot", "Autenticación y reglas de negocio")

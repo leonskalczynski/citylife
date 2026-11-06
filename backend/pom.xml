@@ -9,10 +9,10 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.citylife</groupId>
-    <artifactId>citylife-api</artifactId>
+    <groupId>com.urbanpulse</groupId>
+    <artifactId>urban-pulse-api</artifactId>
     <version>0.1.0-SNAPSHOT</version>
-    <name>Citylife API</name>
+    <name>Urban Pulse API</name>
     <description>API REST para la gestión de incidencias urbanas</description>
 
     <properties>

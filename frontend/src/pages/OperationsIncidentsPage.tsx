@@ -1,11 +1,31 @@
 import { useQuery } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight, Filter, List, Map as MapIcon, Search } from "lucide-react";
-import { useState, type FormEvent } from "react";
+import {
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+  type ColumnDef,
+  type OnChangeFn,
+  type SortingState,
+} from "@tanstack/react-table";
+import {
+  ArrowDown,
+  ArrowRight,
+  ArrowUp,
+  ArrowUpDown,
+  ChevronLeft,
+  ChevronRight,
+  Filter,
+  List,
+  Map as MapIcon,
+  Search,
+  SlidersHorizontal,
+} from "lucide-react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link, useSearchParams } from "react-router";
 
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
@@ -16,11 +36,87 @@ import { IncidentStatusBadge } from "@/features/incidents/components/IncidentSta
 import { IncidentMap, type MapPoint } from "@/features/incidents/components/IncidentMap";
 import type { Incident, OperationFilters, Priority } from "@/features/incidents/types";
 
+const statusOptions = ["REPORTED", "VALIDATED", "REJECTED", "ASSIGNED", "IN_PROGRESS", "RESOLVED"];
+const priorityOptions = ["LOW", "NORMAL", "HIGH", "URGENT"];
+
+const filterLabels: Record<string, string> = {
+  REPORTED: "Reportada",
+  VALIDATED: "Validada",
+  REJECTED: "Rechazada",
+  ASSIGNED: "Asignada",
+  IN_PROGRESS: "En curso",
+  RESOLVED: "Resuelta",
+  REOPENED: "Reabierta",
+  CLOSED: "Cerrada",
+  LOW: "Baja",
+  NORMAL: "Normal",
+  HIGH: "Alta",
+  URGENT: "Urgente",
+};
+
+const columns: ColumnDef<Incident>[] = [
+  {
+    id: "title",
+    accessorKey: "title",
+    header: ({ column }) => <SortableHeader column={column} label="Incidencia" />,
+    cell: ({ row }) => (
+      <Link className="block min-w-52 font-semibold text-[var(--ink)] hover:text-[var(--accent-ink)]" to={`/operations/incidents/${row.original.id}`}>
+        {row.original.title}
+      </Link>
+    ),
+  },
+  {
+    id: "status",
+    accessorKey: "status",
+    header: ({ column }) => <SortableHeader column={column} label="Estado" />,
+    cell: ({ row }) => <IncidentStatusBadge status={row.original.status} />,
+  },
+  {
+    id: "priority",
+    accessorKey: "priority",
+    header: ({ column }) => <SortableHeader column={column} label="Prioridad" />,
+    cell: ({ row }) => <span className="font-medium">{priorityLabel(row.original.priority)}</span>,
+  },
+  {
+    id: "category",
+    accessorFn: (incident) => incident.category.name,
+    header: ({ column }) => <SortableHeader column={column} label="Categoría" />,
+    cell: ({ row }) => <span className="text-[var(--muted)]">{row.original.category.name}</span>,
+  },
+  {
+    id: "district",
+    accessorFn: (incident) => incident.district ?? "",
+    header: ({ column }) => <SortableHeader column={column} label="Distrito" />,
+    cell: ({ row }) => <span className="text-[var(--muted)]">{row.original.district || "—"}</span>,
+  },
+  {
+    id: "createdAt",
+    accessorKey: "createdAt",
+    header: ({ column }) => <SortableHeader column={column} label="Fecha" />,
+    cell: ({ row }) => <span className="whitespace-nowrap text-[var(--muted)]">{formatDate(row.original.createdAt)}</span>,
+  },
+  {
+    id: "actions",
+    enableSorting: false,
+    header: () => <span className="sr-only">Acciones</span>,
+    cell: ({ row }) => (
+      <Button asChild size="icon" variant="ghost" className="size-8">
+        <Link to={`/operations/incidents/${row.original.id}`} aria-label={`Abrir ${row.original.title}`}>
+          <ArrowRight className="size-4" />
+        </Link>
+      </Button>
+    ),
+  },
+];
+
 export function OperationsIncidentsPage() {
   const { token } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [draft, setDraft] = useState<Record<string, string>>(() => draftFromFilters(filtersFromSearch(searchParams)));
-  const [filters, setFilters] = useState<OperationFilters>(() => filtersFromSearch(searchParams));
+  const initialFilters = useMemo(() => filtersFromSearch(searchParams), [searchParams]);
+  const [filters, setFilters] = useState<OperationFilters>(initialFilters);
+  const [draft, setDraft] = useState<Record<string, string>>(() => draftFromFilters(initialFilters));
+  const [searchDraft, setSearchDraft] = useState(initialFilters.search ?? "");
+  const [sorting, setSorting] = useState<SortingState>(() => sortingFromFilters(initialFilters));
   const [view, setView] = useState<"list" | "map">("list");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const incidents = useQuery({
@@ -40,15 +136,27 @@ export function OperationsIncidentsPage() {
     if (next.departmentId) params.set("departmentId", next.departmentId);
     if (next.district) params.set("district", next.district);
     if (next.withoutTechnician) params.set("withoutTechnician", "true");
+    if (next.sort && next.sort !== "createdAt") params.set("sort", next.sort);
+    if (next.direction && next.direction !== "desc") params.set("direction", next.direction);
     if (next.page > 0) params.set("page", String(next.page));
     setSearchParams(params, { replace: true });
   };
+
+  useEffect(() => {
+    const normalized = searchDraft.trim();
+    if (normalized === (filters.search ?? "")) return;
+    const timeout = window.setTimeout(() => {
+      commitFilters({ ...filters, search: normalized || undefined, page: 0 });
+    }, 350);
+    return () => window.clearTimeout(timeout);
+  }, [searchDraft, filters]);
+
   const applyFilters = (event: FormEvent) => {
     event.preventDefault();
     commitFilters({
+      ...filters,
       page: 0,
-      size: 10,
-      search: draft.search || undefined,
+      search: searchDraft.trim() || undefined,
       status: (draft.status || undefined) as OperationFilters["status"],
       priority: (draft.priority || undefined) as Priority | undefined,
       categoryId: draft.categoryId || undefined,
@@ -57,66 +165,135 @@ export function OperationsIncidentsPage() {
       withoutTechnician: draft.withoutTechnician === "true" ? true : undefined,
     });
   };
+
+  const clearFilters = () => {
+    setDraft({});
+    setSearchDraft("");
+    commitFilters({ page: 0, size: 10, sort: "createdAt", direction: "desc" });
+  };
+
+  const handleSortingChange: OnChangeFn<SortingState> = (updater) => {
+    const next = typeof updater === "function" ? updater(sorting) : updater;
+    const first = next[0];
+    const normalized = first ? next : [{ id: "createdAt", desc: true }];
+    setSorting(normalized);
+    commitFilters({ ...filters, page: 0, sort: normalized[0].id, direction: normalized[0].desc ? "desc" : "asc" });
+  };
+
+  const table = useReactTable({
+    data: incidents.data?.content ?? [],
+    columns,
+    state: { sorting },
+    onSortingChange: handleSortingChange,
+    manualSorting: true,
+    getCoreRowModel: getCoreRowModel(),
+  });
+
   const mapPoints = incidents.data ? toMapPoints(incidents.data.content) : [];
   const unlocatedIncidents = incidents.data?.content.filter((incident) => incident.latitude == null || incident.longitude == null) ?? [];
-  const hasAppliedFilters = Boolean(filters.search || filters.status || filters.priority || filters.categoryId || filters.departmentId || filters.district || filters.withoutTechnician);
+  const activeFilterCount = [filters.status, filters.priority, filters.categoryId, filters.departmentId, filters.district, filters.withoutTechnician].filter(Boolean).length;
+  const hasAppliedFilters = Boolean(filters.search || activeFilterCount);
 
   return (
     <AppShell>
-      <section className="mx-auto max-w-7xl px-5 py-10 sm:px-6 sm:py-14">
+      <section className="mx-auto max-w-7xl px-5 py-8 sm:px-6 sm:py-10">
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Bandeja de incidencias</h1>
-          <div className="flex items-center gap-3">
-            {incidents.data && <p className="text-sm text-[var(--muted)]">{incidents.data.totalElements} incidencias</p>}
-            <div className="flex gap-1" aria-label="Vista de incidencias">
-              <Button type="button" className="px-3" variant={view === "list" ? "default" : "ghost"} aria-pressed={view === "list"} onClick={() => setView("list")}><List className="mr-2 size-4" />Lista</Button>
-              <Button type="button" className="px-3" variant={view === "map" ? "default" : "ghost"} aria-pressed={view === "map"} onClick={() => setView("map")}><MapIcon className="mr-2 size-4" />Mapa</Button>
-            </div>
+          <div>
+            <h1 className="text-3xl font-semibold tracking-tight">Incidencias</h1>
+            {incidents.data && <p className="mt-1 text-sm text-[var(--muted)]">{incidents.data.totalElements} {incidents.data.totalElements === 1 ? "resultado" : "resultados"}</p>}
+          </div>
+          <div className="flex gap-1" aria-label="Vista de incidencias">
+            <Button type="button" className="px-3" variant={view === "list" ? "default" : "ghost"} aria-pressed={view === "list"} onClick={() => setView("list")}><List className="mr-2 size-4" />Lista</Button>
+            <Button type="button" className="px-3" variant={view === "map" ? "default" : "ghost"} aria-pressed={view === "map"} onClick={() => setView("map")}><MapIcon className="mr-2 size-4" />Mapa</Button>
           </div>
         </div>
 
-        <Card className="mt-8">
-          <CardContent className="py-5">
-            <Button type="button" variant="outline" className="w-full md:hidden" aria-expanded={filtersOpen} aria-controls="operation-filters" onClick={() => setFiltersOpen((value) => !value)}><Filter className="mr-2 size-4" />{filtersOpen ? "Ocultar filtros" : "Mostrar filtros"}{hasAppliedFilters ? " · activos" : ""}</Button>
-            <form id="operation-filters" className={`${filtersOpen ? "grid" : "hidden"} mt-4 gap-4 md:grid md:mt-0 lg:grid-cols-6`} onSubmit={applyFilters}>
-              <div className="lg:col-span-2"><Label htmlFor="search">Buscar</Label><div className="relative mt-2"><Search className="absolute left-3 top-3.5 size-4 text-[var(--muted)]" /><Input id="search" className="pl-9" placeholder="Título o descripción" value={draft.search ?? ""} onChange={(e) => setDraft({ ...draft, search: e.target.value })} /></div></div>
-              <FilterSelect label="Estado" value={draft.status} onChange={(value) => setDraft({ ...draft, status: value })} options={["REPORTED", "VALIDATED", "REJECTED", "ASSIGNED", "IN_PROGRESS", "RESOLVED"]} />
-              <FilterSelect label="Prioridad" value={draft.priority} onChange={(value) => setDraft({ ...draft, priority: value })} options={["LOW", "NORMAL", "HIGH", "URGENT"]} />
+        <div className="mt-5 overflow-hidden rounded-[14px] border border-[var(--line)] bg-[var(--surface)]">
+          <div className="flex flex-wrap items-center gap-2 border-b border-[var(--line)] p-3">
+            <div className="relative min-w-48 flex-1">
+              <Search className="absolute left-3 top-3 size-4" />
+              <Input aria-label="Buscar incidencias" className="h-10 pl-9" placeholder="Buscar por título o descripción" value={searchDraft} onChange={(event) => setSearchDraft(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); commitFilters({ ...filters, search: searchDraft.trim() || undefined, page: 0 }); } }} />
+            </div>
+            <Button type="button" variant="outline" aria-expanded={filtersOpen} onClick={() => setFiltersOpen((value) => !value)}>
+              <SlidersHorizontal className="mr-2 size-4" />Filtros{activeFilterCount > 0 ? ` · ${activeFilterCount}` : ""}
+            </Button>
+            {hasAppliedFilters && <Button type="button" variant="ghost" onClick={clearFilters}>Limpiar</Button>}
+          </div>
+
+          {filtersOpen && (
+            <form className="grid gap-3 border-b border-[var(--line)] bg-[var(--surface-soft)] p-4 sm:grid-cols-2 lg:grid-cols-6" onSubmit={applyFilters}>
+              <FilterSelect label="Estado" value={draft.status} onChange={(value) => setDraft({ ...draft, status: value })} options={statusOptions} />
+              <FilterSelect label="Prioridad" value={draft.priority} onChange={(value) => setDraft({ ...draft, priority: value })} options={priorityOptions} />
               <div><Label htmlFor="category">Categoría</Label><Select id="category" className="mt-2" value={draft.categoryId ?? ""} onChange={(e) => setDraft({ ...draft, categoryId: e.target.value })}><option value="">Todas</option>{categories.data?.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</Select></div>
               <div><Label htmlFor="department">Departamento</Label><Select id="department" className="mt-2" value={draft.departmentId ?? ""} onChange={(e) => setDraft({ ...draft, departmentId: e.target.value })}><option value="">Todos</option>{departments.data?.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</Select></div>
-              <div className="lg:col-span-2"><Label htmlFor="district">Distrito</Label><Input id="district" className="mt-2" value={draft.district ?? ""} onChange={(e) => setDraft({ ...draft, district: e.target.value })} /></div>
-              <div className="flex flex-wrap items-end gap-2 lg:col-span-4"><Button type="submit"><Filter className="mr-2 size-4" />Aplicar filtros</Button><Button type="button" variant={draft.withoutTechnician === "true" ? "default" : "outline"} aria-pressed={draft.withoutTechnician === "true"} onClick={() => setDraft({ ...draft, withoutTechnician: draft.withoutTechnician === "true" ? "" : "true" })}>Sin técnico</Button>{hasAppliedFilters && <Button type="button" variant="ghost" onClick={() => { setDraft({}); commitFilters({ page: 0, size: 10 }); }}>Limpiar</Button>}</div>
+              <div><Label htmlFor="district">Distrito</Label><Input id="district" className="mt-2" value={draft.district ?? ""} onChange={(e) => setDraft({ ...draft, district: e.target.value })} /></div>
+              <div className="flex items-end gap-2"><Button type="submit" className="flex-1"><Filter className="mr-2 size-4" />Aplicar</Button><Button type="button" variant={draft.withoutTechnician === "true" ? "default" : "outline"} aria-pressed={draft.withoutTechnician === "true"} onClick={() => setDraft({ ...draft, withoutTechnician: draft.withoutTechnician === "true" ? "" : "true" })}>Sin técnico</Button></div>
             </form>
-          </CardContent>
-        </Card>
+          )}
 
-        {view === "list" && <Card className="mt-5 overflow-hidden">
-          {incidents.isLoading && <div className="p-10 text-center text-[var(--muted)]">Cargando incidencias…</div>}
-          {incidents.isError && <div className="p-10 text-center text-[var(--danger)]">No se ha podido cargar la bandeja.</div>}
-          {incidents.data?.content.length === 0 && <div className="p-12 text-center text-[var(--muted)]">No hay incidencias que coincidan con los filtros.</div>}
-          {incidents.data && incidents.data.content.length > 0 && (<>
-            <div className="hidden overflow-x-auto md:block" role="region" aria-label="Tabla de incidencias" tabIndex={0}>
-              <table className="w-full min-w-[850px] text-left text-sm">
-                <thead className="bg-[var(--surface-soft)] text-xs uppercase tracking-wider text-[var(--muted)]"><tr><th className="px-5 py-3 font-semibold">Incidencia</th><th className="px-5 py-3 font-semibold">Estado</th><th className="px-5 py-3 font-semibold">Prioridad</th><th className="px-5 py-3 font-semibold">Categoría</th><th className="px-5 py-3 font-semibold">Departamento</th><th className="px-5 py-3 font-semibold">Fecha</th><th className="px-5 py-3 font-semibold">Acciones</th></tr></thead>
-                <tbody>{incidents.data.content.map((incident) => <tr key={incident.id} className="border-b-2 border-[var(--line)] transition-colors last:border-0 hover:bg-[var(--surface-soft)]"><td className="px-5 py-4"><p className="font-semibold text-[var(--ink)]">{incident.title}</p><p className="mt-1 text-xs text-[var(--muted)]">{incident.district || "Sin distrito"} · {incident.createdBy.displayName}</p></td><td className="px-5 py-4"><IncidentStatusBadge status={incident.status} /></td><td className="px-5 py-4 font-medium">{priorityLabel(incident.priority)}</td><td className="px-5 py-4 text-[var(--muted)]">{incident.category.name}</td><td className="px-5 py-4 text-[var(--muted)]">{incident.department?.name ?? "—"}</td><td className="px-5 py-4 text-[var(--muted)]">{formatDate(incident.createdAt)}</td><td className="px-5 py-4"><Link className="font-semibold text-[var(--accent-ink)] hover:underline" to={`/operations/incidents/${incident.id}`}>Revisar</Link></td></tr>)}</tbody>
-              </table>
-            </div>
-            <div className="divide-y divide-[var(--line)] md:hidden">{incidents.data.content.map((incident) => <article key={incident.id} className="p-5"><div className="flex flex-wrap items-center justify-between gap-2"><IncidentStatusBadge status={incident.status} /><span className="text-xs font-semibold uppercase text-[var(--muted)]">{priorityLabel(incident.priority)}</span></div><h2 className="mt-3 text-base font-semibold">{incident.title}</h2><p className="mt-1 text-sm text-[var(--muted)]">{incident.category.name} · {incident.district || "Sin distrito"}</p><p className="mt-1 text-xs text-[var(--muted)]">{formatDate(incident.createdAt)}</p><Button asChild className="mt-4 w-full" variant="outline"><Link to={`/operations/incidents/${incident.id}`}>Revisar incidencia<ChevronRight className="ml-2 size-4" /></Link></Button></article>)}</div>
-          </>)}
-        </Card>}
+          {view === "list" && (
+            <>
+              {incidents.isError && <div className="p-10 text-center text-[var(--danger)]">No se ha podido cargar la lista.</div>}
+              {!incidents.isError && (
+                <div className="overflow-x-auto" role="region" aria-label="Tabla de incidencias" tabIndex={0}>
+                  <table className="w-full min-w-[900px] text-left text-sm">
+                    <thead className="bg-[var(--surface-soft)] text-xs uppercase tracking-wider text-[var(--muted)]">
+                      {table.getHeaderGroups().map((headerGroup) => (
+                        <tr key={headerGroup.id}>
+                          {headerGroup.headers.map((header) => (
+                            <th key={header.id} className="px-4 py-3 font-semibold">
+                              {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                            </th>
+                          ))}
+                        </tr>
+                      ))}
+                    </thead>
+                    <tbody>
+                      {incidents.isLoading && Array.from({ length: 6 }).map((_, index) => (
+                        <tr key={index} className="border-b border-[var(--line)] last:border-0"><td colSpan={columns.length} className="px-4 py-4"><div className="h-5 animate-pulse rounded bg-[var(--surface-soft)]" /></td></tr>
+                      ))}
+                      {!incidents.isLoading && table.getRowModel().rows.length === 0 && (
+                        <tr><td colSpan={columns.length} className="px-4 py-16 text-center text-[var(--muted)]">No hay incidencias que coincidan con la búsqueda.</td></tr>
+                      )}
+                      {table.getRowModel().rows.map((row) => (
+                        <tr key={row.id} className="border-b border-[var(--line)] transition-colors last:border-0 hover:bg-[var(--surface-soft)]">
+                          {row.getVisibleCells().map((cell) => <td key={cell.id} className="px-4 py-3.5">{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>)}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              {incidents.data && incidents.data.totalPages > 1 && (
+                <nav className="flex items-center justify-between border-t border-[var(--line)] px-4 py-3" aria-label="Paginación">
+                  <p className="text-xs text-[var(--muted)]">{incidents.data.page * incidents.data.size + 1}–{Math.min((incidents.data.page + 1) * incidents.data.size, incidents.data.totalElements)} de {incidents.data.totalElements}</p>
+                  <div className="flex gap-1"><Button variant="outline" size="icon" className="size-8" aria-label="Página anterior" disabled={filters.page === 0} onClick={() => commitFilters({ ...filters, page: filters.page - 1 })}><ChevronLeft className="size-4" /></Button><Button variant="outline" size="icon" className="size-8" aria-label="Página siguiente" disabled={filters.page + 1 >= incidents.data.totalPages} onClick={() => commitFilters({ ...filters, page: filters.page + 1 })}><ChevronRight className="size-4" /></Button></div>
+                </nav>
+              )}
+            </>
+          )}
 
-        {view === "map" && <Card className="mt-5"><CardContent className="py-5">
-          {incidents.isLoading && <div className="p-10 text-center text-[var(--muted)]">Cargando incidencias…</div>}
-          {incidents.isError && <div className="p-10 text-center text-[var(--danger)]">No se ha podido cargar el mapa.</div>}
-          {incidents.data && mapPoints.length === 0 && <div className="p-12 text-center text-[var(--muted)]">Las incidencias de esta página no tienen coordenadas.</div>}
-          {incidents.data && <p className="mb-4 text-sm text-[var(--muted)]">Esta página muestra {mapPoints.length} de {incidents.data.content.length} incidencias en el mapa.{incidents.data.totalPages > 1 ? " El mapa corresponde a la página actual." : ""}</p>}
-          {mapPoints.length > 0 && <IncidentMap ariaLabel="Mapa de incidencias de la página actual" points={mapPoints} fitAll className="h-[32rem]" />}
-          {unlocatedIncidents.length > 0 && <div className="mt-5"><h2 className="font-semibold">Sin coordenadas ({unlocatedIncidents.length})</h2><ul className="mt-2 divide-y divide-[var(--line)]">{unlocatedIncidents.map((incident) => <li key={incident.id}><Link className="flex items-center justify-between gap-3 py-3 text-sm font-medium text-[var(--accent-ink)] hover:underline" to={`/operations/incidents/${incident.id}`}><span>{incident.title}</span><ChevronRight className="size-4" /></Link></li>)}</ul></div>}
-        </CardContent></Card>}
-
-        {incidents.data && incidents.data.totalPages > 1 && <nav className="mt-5 flex items-center justify-between" aria-label="Paginación"><p className="text-sm text-[var(--muted)]">Página {incidents.data.page + 1} de {incidents.data.totalPages}</p><div className="flex gap-2"><Button variant="outline" size="icon" aria-label="Página anterior" disabled={filters.page === 0} onClick={() => commitFilters({ ...filters, page: filters.page - 1 })}><ChevronLeft className="size-4" /></Button><Button variant="outline" size="icon" aria-label="Página siguiente" disabled={filters.page + 1 >= incidents.data.totalPages} onClick={() => commitFilters({ ...filters, page: filters.page + 1 })}><ChevronRight className="size-4" /></Button></div></nav>}
+          {view === "map" && (
+            <CardContent className="py-5">
+              {incidents.isError && <div className="p-10 text-center text-[var(--danger)]">No se ha podido cargar el mapa.</div>}
+              {incidents.data && mapPoints.length === 0 && <div className="p-12 text-center text-[var(--muted)]">Las incidencias de esta página no tienen coordenadas.</div>}
+              {mapPoints.length > 0 && <IncidentMap ariaLabel="Mapa de incidencias de la página actual" points={mapPoints} fitAll className="h-[32rem]" />}
+              {unlocatedIncidents.length > 0 && <ul className="mt-4 divide-y divide-[var(--line)]">{unlocatedIncidents.map((incident) => <li key={incident.id}><Link className="flex items-center justify-between gap-3 py-2.5 text-sm font-medium text-[var(--accent-ink)] hover:underline" to={`/operations/incidents/${incident.id}`}><span>{incident.title}</span><ChevronRight className="size-4" /></Link></li>)}</ul>}
+            </CardContent>
+          )}
+        </div>
       </section>
     </AppShell>
+  );
+}
+
+function SortableHeader({ column, label }: { column: { getIsSorted: () => false | "asc" | "desc"; getToggleSortingHandler: () => ((event: unknown) => void) | undefined }; label: string }) {
+  const sorted = column.getIsSorted();
+  return (
+    <button type="button" className="inline-flex items-center gap-1 uppercase tracking-wider hover:text-[var(--ink)]" onClick={column.getToggleSortingHandler()}>
+      {label}
+      {sorted === "asc" ? <ArrowUp className="size-3" /> : sorted === "desc" ? <ArrowDown className="size-3" /> : <ArrowUpDown className="size-3 opacity-50" />}
+    </button>
   );
 }
 
@@ -132,7 +309,13 @@ function filtersFromSearch(params: URLSearchParams): OperationFilters {
     departmentId: params.get("departmentId") || undefined,
     district: params.get("district") || undefined,
     withoutTechnician: params.get("withoutTechnician") === "true" ? true : undefined,
+    sort: params.get("sort") || "createdAt",
+    direction: params.get("direction") === "asc" ? "asc" : "desc",
   };
+}
+
+function sortingFromFilters(filters: OperationFilters): SortingState {
+  return [{ id: filters.sort ?? "createdAt", desc: (filters.direction ?? "desc") === "desc" }];
 }
 
 function draftFromFilters(filters: OperationFilters): Record<string, string> {
@@ -146,21 +329,6 @@ function draftFromFilters(filters: OperationFilters): Record<string, string> {
     withoutTechnician: filters.withoutTechnician ? "true" : "",
   };
 }
-
-const filterLabels: Record<string, string> = {
-  REPORTED: "Reportada",
-  VALIDATED: "Validada",
-  REJECTED: "Rechazada",
-  ASSIGNED: "Asignada",
-  IN_PROGRESS: "En curso",
-  RESOLVED: "Resuelta",
-  REOPENED: "Reabierta",
-  CLOSED: "Cerrada",
-  LOW: "Baja",
-  NORMAL: "Normal",
-  HIGH: "Alta",
-  URGENT: "Urgente",
-};
 
 function FilterSelect({ label, value, onChange, options }: { label: string; value?: string; onChange: (value: string) => void; options: string[] }) {
   const id = `filter-${label.toLocaleLowerCase("es").replaceAll(" ", "-")}`;
@@ -176,6 +344,6 @@ function toMapPoints(incidents: Incident[]): MapPoint[] {
     latitude: incident.latitude,
     longitude: incident.longitude,
     label: incident.title,
-    popup: <div className="min-w-44"><p className="font-semibold text-[var(--ink)]">{incident.title}</p><p className="mt-1 text-xs text-[var(--muted)]">{incident.category.name} · {incident.district || "Sin distrito"}</p><Link className="mt-3 inline-block text-sm font-semibold text-[var(--accent-ink)]" to={`/operations/incidents/${incident.id}`}>Revisar incidencia</Link></div>,
+    popup: <div className="min-w-44"><p className="font-semibold text-[var(--ink)]">{incident.title}</p><p className="mt-1 text-xs text-[var(--muted)]">{incident.category.name} · {incident.district || "Sin distrito"}</p><Link className="mt-3 inline-block text-sm font-semibold text-[var(--accent-ink)]" to={`/operations/incidents/${incident.id}`}>Abrir incidencia</Link></div>,
   }]);
 }

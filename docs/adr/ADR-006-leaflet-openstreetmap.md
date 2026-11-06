@@ -4,7 +4,7 @@ Status: Accepted
 
 ## Context
 
-Citylife necesita seleccionar y visualizar coordenadas sin convertir la geolocalización en un requisito ni depender de una API propietaria con credenciales durante el MVP.
+Urban Pulse necesita seleccionar y visualizar coordenadas sin convertir la geolocalización en un requisito ni depender de una API propietaria con credenciales durante el MVP.
 
 ## Decision
 

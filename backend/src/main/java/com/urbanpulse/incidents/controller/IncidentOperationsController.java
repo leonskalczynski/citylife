@@ -1,0 +1,108 @@
+package com.urbanpulse.incidents.controller;
+
+import com.urbanpulse.incidents.dto.AssignIncidentRequest;
+import com.urbanpulse.incidents.dto.AttachmentResponse;
+import com.urbanpulse.incidents.dto.ChangePriorityRequest;
+import com.urbanpulse.incidents.dto.IncidentResponse;
+import com.urbanpulse.incidents.dto.IncidentStatusChangeResponse;
+import com.urbanpulse.incidents.dto.PageResponse;
+import com.urbanpulse.incidents.dto.RejectIncidentRequest;
+import com.urbanpulse.incidents.model.IncidentStatus;
+import com.urbanpulse.incidents.model.Priority;
+import com.urbanpulse.incidents.service.IncidentOperationsService;
+import com.urbanpulse.incidents.service.IncidentAuditService;
+import com.urbanpulse.incidents.service.IncidentAttachmentService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.UUID;
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/operations/incidents")
+@PreAuthorize("hasRole('OPERATOR')")
+@SecurityRequirement(name = "bearerAuth")
+@Tag(name = "Incident operations")
+public class IncidentOperationsController {
+
+    private final IncidentOperationsService operationsService;
+    private final IncidentAuditService auditService;
+    private final IncidentAttachmentService attachmentService;
+
+    public IncidentOperationsController(IncidentOperationsService operationsService, IncidentAuditService auditService, IncidentAttachmentService attachmentService) {
+        this.operationsService = operationsService;
+        this.auditService = auditService;
+        this.attachmentService = attachmentService;
+    }
+
+    @GetMapping
+    @Operation(summary = "Searches incidents with server-side pagination and filters")
+    public PageResponse<IncidentResponse> search(
+            @RequestParam(required = false) IncidentStatus status,
+            @RequestParam(required = false) Priority priority,
+            @RequestParam(required = false) UUID categoryId,
+            @RequestParam(required = false) UUID departmentId,
+            @RequestParam(required = false) String district,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Boolean withoutTechnician,
+            @RequestParam(defaultValue = "createdAt") String sort,
+            @RequestParam(defaultValue = "desc") String direction,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        return operationsService.search(status, priority, categoryId, departmentId, district, search, withoutTechnician, sort, direction, page, size);
+    }
+
+    @GetMapping("/{incidentId}")
+    @Operation(summary = "Returns an incident for operational review")
+    public IncidentResponse get(@PathVariable UUID incidentId) {
+        return operationsService.get(incidentId);
+    }
+
+    @PostMapping("/{incidentId}/validate")
+    @Operation(summary = "Validates a reported incident")
+    public IncidentResponse validate(@PathVariable UUID incidentId, Authentication authentication) {
+        return operationsService.validate(incidentId, authentication.getName());
+    }
+
+    @PostMapping("/{incidentId}/reject")
+    @Operation(summary = "Rejects a reported incident with a reason")
+    public IncidentResponse reject(@PathVariable UUID incidentId, Authentication authentication, @Valid @RequestBody RejectIncidentRequest request) {
+        return operationsService.reject(incidentId, authentication.getName(), request);
+    }
+
+    @PostMapping("/{incidentId}/priority")
+    @Operation(summary = "Changes incident priority")
+    public IncidentResponse changePriority(@PathVariable UUID incidentId, @Valid @RequestBody ChangePriorityRequest request) {
+        return operationsService.changePriority(incidentId, request);
+    }
+
+    @PostMapping("/{incidentId}/assign")
+    @Operation(summary = "Assigns an incident to a department and optional technician")
+    public IncidentResponse assign(@PathVariable UUID incidentId, Authentication authentication, @Valid @RequestBody AssignIncidentRequest request) {
+        return operationsService.assign(incidentId, authentication.getName(), request);
+    }
+
+    @GetMapping("/{incidentId}/history")
+    @Operation(summary = "Returns the complete status history of an incident")
+    public List<IncidentStatusChangeResponse> getHistory(@PathVariable UUID incidentId) {
+        return auditService.listForOperator(incidentId);
+    }
+
+    @GetMapping("/{incidentId}/attachments")
+    @Operation(summary = "Lists image attachments for an incident")
+    public List<AttachmentResponse> getAttachments(@PathVariable UUID incidentId) {
+        return attachmentService.listForOperator(incidentId);
+    }
+}

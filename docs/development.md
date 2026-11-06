@@ -32,7 +32,7 @@ npm install
 
 El archivo `.env` raíz configura PostgreSQL y las variables del backend; no debe añadirse a Git. El comando `source` exporta esas variables a la terminal actual. `frontend/.env.example` documenta las variables específicas de Vite.
 
-## Ejecutar Citylife
+## Ejecutar Urban Pulse
 
 ### Lanzador automático
 
@@ -42,12 +42,12 @@ Desde la raíz del repositorio:
 ./dev.sh
 ```
 
-Hace todo el arranque: crea `.env` si falta, levanta PostgreSQL, espera a que esté sano, reinicia un backend anterior de Citylife si ocupa el puerto, instala dependencias del frontend si faltan, arranca backend y frontend, comprueba que ambos responden y abre el navegador.
+Hace todo el arranque: crea `.env` si falta, levanta PostgreSQL, espera a que esté sano, reinicia un backend anterior de Urban Pulse si ocupa el puerto, instala dependencias del frontend si faltan, arranca backend y frontend, comprueba que ambos responden y abre el navegador.
 
 - `./dev.sh --no-open` evita abrir el navegador.
 - `Ctrl+C` detiene backend y frontend; PostgreSQL sigue en Docker.
 - Los logs quedan en `.local/backend.log` y `.local/frontend.log`.
-- Los puertos se pueden cambiar con `CITYLIFE_BACKEND_PORT` y `CITYLIFE_FRONTEND_PORT`.
+- Los puertos se pueden cambiar con `URBANPULSE_BACKEND_PORT` y `URBANPULSE_FRONTEND_PORT`.
 
 ### Ejecución manual
 
@@ -96,18 +96,18 @@ Abre `http://localhost:5173`. Vite redirige las peticiones `/api` a `http://loca
 
 | Variable | Valor local predeterminado |
 | --- | --- |
-| `POSTGRES_DB` | `citylife` |
-| `POSTGRES_USER` | `citylife` |
-| `POSTGRES_PASSWORD` | `citylife_local_password` |
+| `POSTGRES_DB` | `urbanpulse` |
+| `POSTGRES_USER` | `urbanpulse` |
+| `POSTGRES_PASSWORD` | `urbanpulse_local_password` |
 | `POSTGRES_PORT` | `5432` |
 
 ### Backend
 
 | Variable | Valor local predeterminado |
 | --- | --- |
-| `DB_URL` | `jdbc:postgresql://localhost:5432/citylife` |
-| `DB_USERNAME` | `citylife` |
-| `DB_PASSWORD` | `citylife_local_password` |
+| `DB_URL` | `jdbc:postgresql://localhost:5432/urbanpulse` |
+| `DB_USERNAME` | `urbanpulse` |
+| `DB_PASSWORD` | `urbanpulse_local_password` |
 | `CORS_ALLOWED_ORIGINS` | Lista separada por comas; `localhost` y `127.0.0.1` en local |
 | `JWT_SECRET_BASE64` | Obligatoria; secreto HMAC codificado en Base64 |
 | `JWT_TTL` | `15m` en `.env.example` |
@@ -251,7 +251,7 @@ POSTGRES_PORT=5433
 
 ```bash
 cd backend
-DB_URL=jdbc:postgresql://localhost:5433/citylife mvn spring-boot:run -Dspring-boot.run.profiles=local
+DB_URL=jdbc:postgresql://localhost:5433/urbanpulse mvn spring-boot:run -Dspring-boot.run.profiles=local
 ```
 
 ### El frontend muestra “API no disponible”

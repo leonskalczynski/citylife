@@ -1,4 +1,4 @@
-import { ArrowUpRight, MapPin } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { Link } from "react-router";
 
 import { IncidentMap, type MapPoint } from "@/features/incidents/components/IncidentMap";
@@ -32,15 +32,10 @@ export function TerritoryPanel({ points, districts, incidentHref, districtHref }
     ),
   }));
   const maxDistrict = Math.max(1, ...districts.map((item) => item.count));
-  const totalIncidents = districts.reduce((total, item) => total + item.count, 0);
 
   return (
     <div className="overflow-hidden rounded-[14px] border border-[var(--line)] bg-[var(--surface)]">
-      <div className="flex flex-wrap items-center justify-between gap-3 p-5 pb-3">
-        <p className="text-xs text-[var(--muted)]">{points.length > 0 ? `${points.length} de ${totalIncidents} incidencias con coordenadas` : "Sin coordenadas disponibles todavía"}</p>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--surface-soft)] px-2.5 py-1 text-xs font-medium text-[var(--muted)]"><MapPin className="size-3.5" />{districts.length} {districts.length === 1 ? "grupo territorial" : "grupos territoriales"}</span>
-      </div>
-      <div className="grid gap-5 p-5 pt-2 lg:grid-cols-[1.5fr_0.8fr]">
+      <div className="grid gap-5 p-5 lg:grid-cols-[1.5fr_0.8fr]">
         {mapPoints.length > 0 ? (
           <IncidentMap ariaLabel="Mapa de incidencias del panel" points={mapPoints} fitAll className="h-80" />
         ) : (

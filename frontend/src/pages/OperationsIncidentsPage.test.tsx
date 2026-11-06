@@ -14,7 +14,7 @@ describe("OperationsIncidentsPage", () => {
   });
 
   it("muestra la bandeja paginada recibida del backend", async () => {
-    sessionStorage.setItem("citylife.accessToken", "operator-token");
+    sessionStorage.setItem("urbanpulse.accessToken", "operator-token");
     vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       let body: unknown;
@@ -55,17 +55,15 @@ describe("OperationsIncidentsPage", () => {
     );
 
     expect((await screen.findAllByText("Farola apagada")).length).toBeGreaterThan(0);
-    expect(screen.getByText("1 incidencias")).toBeInTheDocument();
-    expect(screen.getAllByRole("link", { name: "Revisar" })).toEqual(
-      expect.arrayContaining([expect.objectContaining({ href: expect.stringContaining("/operations/incidents/incident-id") })]),
-    );
+    expect(screen.getByText("1 resultado")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Abrir Farola apagada" })).toHaveAttribute("href", "/operations/incidents/incident-id");
 
     fireEvent.click(screen.getByRole("button", { name: "Mapa" }));
     expect(await screen.findByText("Las incidencias de esta página no tienen coordenadas.")).toBeInTheDocument();
   });
 
   it("aplica los filtros recibidos desde el panel", async () => {
-    sessionStorage.setItem("citylife.accessToken", "operator-token");
+    sessionStorage.setItem("urbanpulse.accessToken", "operator-token");
     const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       let body: unknown;
@@ -89,7 +87,7 @@ describe("OperationsIncidentsPage", () => {
       </QueryClientProvider>,
     );
 
-    expect(await screen.findByText("No hay incidencias que coincidan con los filtros.")).toBeInTheDocument();
+    expect(await screen.findByText("No hay incidencias que coincidan con la búsqueda.")).toBeInTheDocument();
     const incidentRequest = fetchMock.mock.calls.map(([input]) => String(input)).find((url) => url.includes("/api/operations/incidents?"));
     expect(incidentRequest).toContain("status=REPORTED");
     expect(incidentRequest).toContain("priority=URGENT");

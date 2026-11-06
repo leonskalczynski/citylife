@@ -4,7 +4,7 @@ Status: Accepted
 
 ## Context
 
-Citylife necesita evidencias visuales vinculadas a incidencias, con permisos por recurso, límites claros y una solución sencilla para el MVP. Guardar binarios en PostgreSQL aumentaría el tamaño de las copias y acoplaría la entrega de imágenes a la base de datos.
+Urban Pulse necesita evidencias visuales vinculadas a incidencias, con permisos por recurso, límites claros y una solución sencilla para el MVP. Guardar binarios en PostgreSQL aumentaría el tamaño de las copias y acoplaría la entrega de imágenes a la base de datos.
 
 ## Decision
 

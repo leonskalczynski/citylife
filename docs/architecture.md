@@ -1,8 +1,8 @@
-# Arquitectura de Citylife
+# Arquitectura de Urban Pulse
 
 ## Objetivos
 
-La arquitectura busca que Citylife sea fácil de comprender, probar y ampliar durante un proyecto universitario. Se favorecen separación de responsabilidades, código explícito y evolución incremental.
+La arquitectura busca que Urban Pulse sea fácil de comprender, probar y ampliar durante un proyecto universitario. Se favorecen separación de responsabilidades, código explícito y evolución incremental.
 
 Los requisitos arquitectónicos principales son:
 
@@ -41,7 +41,7 @@ Los diagramas C4 detallados están en [contexto](architecture/c4-context.md) y [
 El backend es una sola aplicación y una sola unidad de despliegue. Sus paquetes se organizan por funcionalidad:
 
 ```text
-com.citylife/
+com.urbanpulse/
 ├── auth/              # Registro, login y tokens
 ├── users/             # Identidad, perfiles y roles
 ├── incidents/         # Incidencias y ciclo de vida

@@ -84,9 +84,7 @@ export function DashboardPage() {
   return (
     <AppShell>
       <section className="mx-auto max-w-6xl px-5 py-8 sm:px-6 sm:py-10">
-        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--muted)]">{formatToday()}</p>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight">{greetingFor(role, firstName)}</h1>
-        <p className="mt-1 text-sm text-[var(--muted)]">{heroLineFor(role)}</p>
+        <h1 className="text-2xl font-semibold tracking-tight">{greetingFor(role, firstName)}</h1>
 
         {dashboardQuery.isLoading && <DashboardSkeleton />}
 
@@ -117,7 +115,6 @@ function RoleLanding({ role, firstName }: { role: string; firstName?: string }) 
         <Card className="mt-8">
           <CardContent className="py-10">
             <h2 className="text-xl font-semibold">Tu cuenta está activa</h2>
-            <p className="mt-3 max-w-2xl leading-7 text-[var(--muted)]">Este rol no tiene tareas operativas asignadas en Citylife. Puedes consultar tu identidad y cerrar sesión desde el menú de usuario.</p>
           </CardContent>
         </Card>
       </section>
@@ -143,24 +140,21 @@ function DashboardContent({ dashboard, role }: { dashboard: Dashboard; role: str
     <>
       <CityPulseHero dashboard={dashboard} role={role} reviewCount={reviewCount} reviewLabel={reviewLabel} />
 
-      <DashboardSection index="01" title={visibleActions.length > 0 ? "Qué necesita acción" : "Todo al día"} aside={<Link className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--accent-ink)] hover:underline" to={listHref()}>Ver {role === "TECHNICIAN" ? "trabajos" : "incidencias"} <ArrowRight className="size-3.5" /></Link>}>
+      <DashboardSection title={visibleActions.length > 0 ? "Qué necesita acción" : "Todo al día"} aside={<Link className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--accent-ink)] hover:underline" to={listHref()}>Ver {role === "TECHNICIAN" ? "trabajos" : "incidencias"} <ArrowRight className="size-3.5" /></Link>}>
         {visibleActions.length > 0 ? <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{visibleActions.map((card) => <ActionQueueCard key={card.label} {...card} />)}</div> : <Card><CardContent className="flex items-center gap-3 py-6"><CheckCircle2 className="size-5 text-[var(--success)]" aria-hidden="true" /><p className="font-medium">No hay tareas pendientes en este momento.</p></CardContent></Card>}
       </DashboardSection>
 
-      {role === "OPERATOR" && <details className="mt-10 rounded-[14px] border border-[var(--line)] bg-[var(--surface)] open:pb-2">
-        <summary className="cursor-pointer px-5 py-4 font-semibold focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-inset focus-visible:ring-[color-mix(in_srgb,var(--accent)_50%,transparent)]">Ver análisis operativo</summary>
-        <div className="border-t border-[var(--line)] px-5">
-          <DashboardSection index="02" title="Rendimiento" aside={<span className="text-xs text-[var(--muted)]">Últimos 7 días</span>}><div className="grid gap-3 lg:grid-cols-3"><ResolutionRateCard dashboard={dashboard} /><ResolutionTimeCard resolution={resolution} /><WeeklyActivityCard dashboard={dashboard} /></div></DashboardSection>
-          <DashboardSection index="03" title="Distribución" aside={<span className="text-xs text-[var(--muted)]">{dashboard.totalIncidents} {dashboard.totalIncidents === 1 ? "incidencia" : "incidencias"}</span>}>
+      {role === "OPERATOR" && <div className="mt-10">
+          <DashboardSection title="Rendimiento" aside={<span className="text-xs text-[var(--muted)]">Últimos 7 días</span>}><div className="grid gap-3 lg:grid-cols-3"><ResolutionRateCard dashboard={dashboard} /><ResolutionTimeCard resolution={resolution} /><WeeklyActivityCard dashboard={dashboard} /></div></DashboardSection>
+          <DashboardSection title="Distribución" aside={<span className="text-xs text-[var(--muted)]">{dashboard.totalIncidents} {dashboard.totalIncidents === 1 ? "incidencia" : "incidencias"}</span>}>
             <div className="grid gap-3 lg:grid-cols-3">
               <DashboardDistribution title="Por estado" items={toDistributionItems(dashboard.byStatus, statusLabels, statusColors, (key) => listHref({ status: key }))} total={dashboard.totalIncidents} emptyMessage="Todavía no hay incidencias registradas." />
               <DashboardDistribution title="Por prioridad" items={toDistributionItems(dashboard.byPriority, priorityLabels, priorityColors, (key) => listHref({ priority: key }))} total={dashboard.totalIncidents} emptyMessage="Todavía no hay prioridades que mostrar." />
               <DashboardDistribution title="Por categoría" items={dashboard.byCategory.map((item) => ({ key: item.id, label: item.name, count: item.count, colorClass: "bg-[var(--accent)]", href: listHref({ categoryId: item.id }) }))} total={dashboard.totalIncidents} variant="bars" emptyMessage="Todavía no hay categorías con incidencias." />
             </div>
           </DashboardSection>
-          <DashboardSection index="04" title="Dónde ocurre" aside={<span className="text-xs text-[var(--muted)]">{pulse.mapPoints.length > 0 ? "Actividad geolocalizada" : "Sin ubicaciones"}</span>}><TerritoryPanel points={pulse.mapPoints} districts={pulse.byDistrict} incidentHref={incidentHref} districtHref={(district) => listHref({ district })} /></DashboardSection>
-        </div>
-      </details>}
+        <DashboardSection title="Dónde ocurre"><TerritoryPanel points={pulse.mapPoints} districts={pulse.byDistrict} incidentHref={incidentHref} districtHref={(district) => listHref({ district })} /></DashboardSection>
+      </div>}
     </>
   );
 }
@@ -172,12 +166,8 @@ function CityPulseHero({ dashboard, role, reviewCount, reviewLabel }: { dashboar
       <div className="relative p-6 sm:p-8">
         <div className="flex flex-col justify-between gap-8 lg:flex-row lg:items-start">
           <div>
-            <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
-              <span className="size-2 rounded-full bg-[var(--accent)]" aria-hidden="true" />
-              Resumen actualizado · {workspaceFor(role)}
-            </div>
-            <div className="mt-5 flex flex-wrap items-end gap-x-4 gap-y-1">
-              <span className="text-5xl font-semibold leading-none tracking-[-0.04em] tabular-nums sm:text-6xl">{pulse.activeIncidents}</span>
+            <div className="mt-1 flex flex-wrap items-end gap-x-4 gap-y-1">
+              <span className="text-6xl font-semibold leading-none tracking-[-0.05em] tabular-nums sm:text-7xl">{pulse.activeIncidents}</span>
               <div className="pb-1">
                 <p className="text-lg font-semibold">incidencias activas</p>
                 <p className="text-sm text-[var(--muted)]">{pulse.createdToday > 0 ? `${pulse.createdToday} ${pulse.createdToday === 1 ? "nueva" : "nuevas"} hoy` : "Sin nuevas hoy"} · {pulse.createdLast7Days} esta semana</p>
@@ -228,23 +218,23 @@ function RoleAction({ role }: { role: string }) {
 function actionCards(role: string, indicators: DashboardIndicators, listHref: (params?: Record<string, string>) => string) {
   if (role === "OPERATOR") {
     return [
-      { label: "Pendientes de validar", count: indicators.awaitingValidation, context: "Esperando revisión municipal", href: listHref({ status: "REPORTED" }), icon: <Inbox className="size-5" />, accent: true },
-      { label: "Pendientes de asignar", count: indicators.awaitingAssignment, context: "Validadas sin destino operativo", href: listHref({ status: "VALIDATED" }), icon: <UserRound className="size-5" /> },
-      { label: "Sin técnico", count: indicators.assignedWithoutTechnician, context: "Asignadas sin una persona responsable", href: listHref({ status: "ASSIGNED", withoutTechnician: "true" }), icon: <Wrench className="size-5" /> },
-      { label: "Urgentes abiertas", count: indicators.urgentOpen, context: "Prioridad máxima sin cerrar", href: listHref({ priority: "URGENT" }), icon: <CircleAlert className="size-5" />, accent: true },
+      { label: "Pendientes de validar", count: indicators.awaitingValidation, href: listHref({ status: "REPORTED" }), icon: <Inbox className="size-5" />, accent: true },
+      { label: "Pendientes de asignar", count: indicators.awaitingAssignment, href: listHref({ status: "VALIDATED" }), icon: <UserRound className="size-5" /> },
+      { label: "Sin técnico", count: indicators.assignedWithoutTechnician, href: listHref({ status: "ASSIGNED", withoutTechnician: "true" }), icon: <Wrench className="size-5" /> },
+      { label: "Urgentes abiertas", count: indicators.urgentOpen, href: listHref({ priority: "URGENT" }), icon: <CircleAlert className="size-5" />, accent: true },
     ];
   }
   if (role === "TECHNICIAN") {
     return [
-      { label: "Por iniciar", count: indicators.awaitingStart, context: "Asignadas pendientes de comenzar", href: listHref(), icon: <Clock3 className="size-5" />, accent: true },
-      { label: "En curso", count: indicators.inProgress, context: "Intervenciones abiertas ahora", href: listHref(), icon: <TrendingUp className="size-5" /> },
-      { label: "Urgentes abiertas", count: indicators.urgentOpen, context: "Prioridad máxima sin resolver", href: listHref(), icon: <CircleAlert className="size-5" />, accent: true },
+      { label: "Por iniciar", count: indicators.awaitingStart, href: listHref(), icon: <Clock3 className="size-5" />, accent: true },
+      { label: "En curso", count: indicators.inProgress, href: listHref(), icon: <TrendingUp className="size-5" /> },
+      { label: "Urgentes abiertas", count: indicators.urgentOpen, href: listHref(), icon: <CircleAlert className="size-5" />, accent: true },
     ];
   }
   return [
-    { label: "Pendientes de revisión", count: indicators.awaitingValidation, context: "En espera de revisión municipal", href: listHref(), icon: <Inbox className="size-5" />, accent: true },
-    { label: "En curso", count: indicators.activeWork, context: "Validadas o en intervención", href: listHref(), icon: <TrendingUp className="size-5" /> },
-    { label: "Urgentes abiertas", count: indicators.urgentOpen, context: "Prioridad máxima sin resolver", href: listHref(), icon: <CircleAlert className="size-5" />, accent: true },
+    { label: "Pendientes de revisión", count: indicators.awaitingValidation, href: listHref(), icon: <Inbox className="size-5" />, accent: true },
+    { label: "En curso", count: indicators.activeWork, href: listHref(), icon: <TrendingUp className="size-5" /> },
+    { label: "Urgentes abiertas", count: indicators.urgentOpen, href: listHref(), icon: <CircleAlert className="size-5" />, accent: true },
   ];
 }
 
@@ -363,22 +353,6 @@ function greetingFor(role: string, firstName?: string) {
   const salutation = hour < 12 ? "Buenos días" : hour < 20 ? "Buenas tardes" : "Buenas noches";
   if (role === "OPERATOR") return `${salutation}, equipo`;
   return `${salutation}, ${firstName || "ciudad"}`;
-}
-
-function heroLineFor(role: string) {
-  if (role === "OPERATOR") return "Así está la ciudad hoy.";
-  if (role === "TECHNICIAN") return "Tu jornada de campo, de un vistazo.";
-  return "Así avanzan tus avisos.";
-}
-
-function workspaceFor(role: string) {
-  if (role === "OPERATOR") return "Centro de control";
-  if (role === "TECHNICIAN") return "Unidad de campo";
-  return "Ciudadanía";
-}
-
-function formatToday() {
-  return new Intl.DateTimeFormat("es-ES", { weekday: "long", day: "numeric", month: "long" }).format(new Date());
 }
 
 function DashboardSkeleton() {

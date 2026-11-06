@@ -28,5 +28,5 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> &
 
 export function Button({ className, variant, size, asChild, ...props }: ButtonProps) {
   const Component = asChild ? Slot : "button";
-  return <Component className={cn(buttonVariants({ variant, size }), className)} {...props} />;
+  return <Component data-variant={variant ?? "default"} className={cn(buttonVariants({ variant, size }), className)} {...props} />;
 }

@@ -1,6 +1,6 @@
-# Contribuir a Citylife
+# Contribuir a Urban Pulse
 
-Gracias por contribuir. Citylife prioriza cambios pequeños, explícitos y fáciles de revisar. La simplicidad y la claridad tienen preferencia sobre patrones sofisticados que todavía no aporten valor.
+Gracias por contribuir. Urban Pulse prioriza cambios pequeños, explícitos y fáciles de revisar. La simplicidad y la claridad tienen preferencia sobre patrones sofisticados que todavía no aporten valor.
 
 ## Antes de empezar
 

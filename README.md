@@ -1,6 +1,6 @@
-# Citylife
+# Urban Pulse
 
-Citylife es una plataforma para gestionar incidencias urbanas de principio a fin. Su objetivo es conectar a ciudadanía, operadores municipales y equipos técnicos mediante un flujo claro, seguro y auditable.
+Urban Pulse es una plataforma para gestionar incidencias urbanas de principio a fin. Su objetivo es conectar a ciudadanía, operadores municipales y equipos técnicos mediante un flujo claro, seguro y auditable.
 
 Una persona podrá reportar problemas como alumbrado averiado, árboles caídos, limpieza, contenedores o daños en la vía pública. Los operadores validarán y asignarán las incidencias, y los técnicos documentarán su intervención y resolución.
 
@@ -21,12 +21,13 @@ Las Fases 1 a 9 están implementadas: infraestructura local, autenticación JWT,
 
 ## Tecnologías y propósito
 
-| Tecnología | Uso en Citylife |
+| Tecnología | Uso en Urban Pulse |
 | --- | --- |
 | React + TypeScript | Interfaz web tipada y organizada por funcionalidad |
 | Vite | Servidor de desarrollo y build del frontend |
 | Tailwind CSS + shadcn/ui | Estilos y componentes accesibles y reutilizables |
-| Leaflet + OpenStreetMap | Selección y visualización cartográfica sin acoplar el dominio a un proveedor propietario |
+| Leaflet + React Leaflet | Selección y visualización cartográfica sin acoplar el dominio a un proveedor propietario |
+| TanStack Table | Tabla de incidencias con búsqueda, filtros, ordenación y paginación |
 | React Router | Navegación de la SPA |
 | Spring Boot + Java 21 | API REST y reglas de negocio |
 | Spring Data JPA | Acceso a datos relacionales |
@@ -51,7 +52,7 @@ Spring Boot
 PostgreSQL
 ```
 
-Citylife es un monolito modular: mantiene una única aplicación backend desplegable, pero separa el código por funcionalidades. React nunca accede directamente a PostgreSQL y el backend es la fuente de verdad para permisos, validaciones y cambios de estado.
+Urban Pulse es un monolito modular: mantiene una única aplicación backend desplegable, pero separa el código por funcionalidades. React nunca accede directamente a PostgreSQL y el backend es la fuente de verdad para permisos, validaciones y cambios de estado.
 
 ## Inicio rápido
 

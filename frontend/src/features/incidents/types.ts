@@ -76,6 +76,8 @@ export type OperationFilters = {
   departmentId?: string;
   district?: string;
   withoutTechnician?: boolean;
+  sort?: string;
+  direction?: "asc" | "desc";
   page: number;
   size: number;
 };

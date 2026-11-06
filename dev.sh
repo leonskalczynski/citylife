@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
 #
-# Lanzador local de Citylife.
+# Lanzador local de Urban Pulse.
 # Uso: ./dev.sh [--no-open]
 #
 # Variables opcionales:
-#   CITYLIFE_BACKEND_PORT   Puerto del backend (por defecto 8080)
-#   CITYLIFE_FRONTEND_PORT  Puerto del frontend (por defecto 5173)
+#   URBANPULSE_BACKEND_PORT   Puerto del backend (por defecto 8080)
+#   URBANPULSE_FRONTEND_PORT  Puerto del frontend (por defecto 5173)
 #
 set -Eeuo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$ROOT"
 
-BACKEND_PORT="${CITYLIFE_BACKEND_PORT:-8080}"
-FRONTEND_PORT="${CITYLIFE_FRONTEND_PORT:-5173}"
+BACKEND_PORT="${URBANPULSE_BACKEND_PORT:-8080}"
+FRONTEND_PORT="${URBANPULSE_FRONTEND_PORT:-5173}"
 LOG_DIR="$ROOT/.local"
 BACKEND_LOG="$LOG_DIR/backend.log"
 FRONTEND_LOG="$LOG_DIR/frontend.log"
@@ -33,9 +33,9 @@ for arg in "$@"; do
   esac
 done
 
-log() { printf '\033[1;32m[citylife]\033[0m %s\n' "$*"; }
-warn() { printf '\033[1;33m[citylife]\033[0m %s\n' "$*" >&2; }
-fail() { printf '\033[1;31m[citylife]\033[0m %s\n' "$*" >&2; exit 1; }
+log() { printf '\033[1;32m[urban-pulse]\033[0m %s\n' "$*"; }
+warn() { printf '\033[1;33m[urban-pulse]\033[0m %s\n' "$*" >&2; }
+fail() { printf '\033[1;31m[urban-pulse]\033[0m %s\n' "$*" >&2; exit 1; }
 
 cleanup() {
   [[ "$CLEANED" -eq 1 ]] && return
@@ -77,7 +77,8 @@ owns_port() {
   args="$(ps -p "$pid" -o args= 2>/dev/null || true)"
   lower="${args,,}"
   cwd="$(readlink -f "/proc/$pid/cwd" 2>/dev/null || true)"
-  [[ "$lower" == *citylife* || "$cwd" == *citylife* ]] && return 0
+  # The checkout directory keeps its historical name; process ownership still needs it.
+  [[ "$lower" == *urban-pulse* || "$cwd" == *urban-pulse* || "$lower" == *citylife* || "$cwd" == *citylife* ]] && return 0
   [[ "$kind" == "backend" && "$lower" == *spring-boot* ]] && return 0
   return 1
 }
@@ -140,7 +141,7 @@ set -a
 source .env
 set +a
 
-export DEMO_USER_PASSWORD="${DEMO_USER_PASSWORD:-Citylife123!}"
+export DEMO_USER_PASSWORD="${DEMO_USER_PASSWORD:-UrbanPulse123!}"
 [[ -n "${JWT_SECRET_BASE64:-}" ]] || fail "Falta JWT_SECRET_BASE64 en .env."
 
 if [[ "$FRONTEND_PORT" != "5173" ]]; then
@@ -150,7 +151,7 @@ fi
 log "Levantando PostgreSQL…"
 docker compose up -d postgres >/dev/null
 for _ in $(seq 1 60); do
-  status="$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.State}}{{end}}' citylife-postgres 2>/dev/null || true)"
+  status="$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.State}}{{end}}' urban-pulse-postgres 2>/dev/null || true)"
   [[ "$status" == "healthy" || "$status" == "running" ]] && break
   sleep 1
 done
@@ -199,7 +200,7 @@ fi
 
 cat <<EOF
 
-  Citylife está listo.
+  Urban Pulse está listo.
 
   App:      http://localhost:${FRONTEND_PORT}
   API:      http://localhost:${BACKEND_PORT}

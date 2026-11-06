@@ -2,7 +2,7 @@
 
 ## Estado actual
 
-Citylife ha completado la Fase 7 y está preparado para ejecutarse en desarrollo local. Todavía no existe una configuración de producción, una imagen del backend ni un pipeline de entrega continua. Este documento separa el procedimiento disponible hoy de la estrategia prevista para evitar presentar como operativo algo que aún no lo es.
+Urban Pulse ha completado la Fase 7 y está preparado para ejecutarse en desarrollo local. Todavía no existe una configuración de producción, una imagen del backend ni un pipeline de entrega continua. Este documento separa el procedimiento disponible hoy de la estrategia prevista para evitar presentar como operativo algo que aún no lo es.
 
 ## Despliegue local actual
 
@@ -20,7 +20,7 @@ Backend:
 ```bash
 cd backend
 mvn clean package
-java -jar target/citylife-api-0.1.0-SNAPSHOT.jar
+java -jar target/urban-pulse-api-0.1.0-SNAPSHOT.jar
 ```
 
 Frontend:
